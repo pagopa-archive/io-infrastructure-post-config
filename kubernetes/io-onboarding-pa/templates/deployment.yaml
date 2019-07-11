@@ -1,0 +1,106 @@
+---
+
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "io-onboarding-pa.fullname" . }}
+  labels:
+    app: {{ template "io-onboarding-pa.name" . }}
+    chart: {{ template "io-onboarding-pa.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "io-onboarding-pa.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "io-onboarding-pa.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      hostAliases:
+      - ip: "127.0.0.1"
+        hostnames:
+        - "{{ .Values.ioOnboardingPa.backend.host }}"
+        - "{{ .Values.ioOnboardingPa.postgresDb.host }}"
+      containers:
+        # Backend
+        - name: backend
+          image: "{{ .Values.global.registry }}{{ .Values.ioOnboardingPa.images.backend.repository }}:{{ tpl .Values.ioOnboardingPa.images.backend.tag . }}"
+          imagePullPolicy: {{ .Values.ioOnboardingPa.images.pullPolicy }}
+          env:
+            - name: PGHOST
+              value: "{{ .Values.ioOnboardingPa.postgresDb.host }}"
+            - name: PGDATABASE
+              value: "{{ .Values.ioOnboardingPa.postgresDb.database }}"
+            - name: PGUSER
+              value: "{{ .Values.ioOnboardingPa.postgresDb.user }}"
+            - name: PGPASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: io-onboarding-pa
+                  key: pgpassword
+          ports:
+            - name: onboard-pa-http
+              containerPort: {{ .Values.ioOnboardingPa.services.backendHttp.port }}
+              protocol: {{ .Values.ioOnboardingPa.services.backendHttp.protocol }}
+          resources:
+{{ toYaml .Values.ioOnboardingPa.resources.backend | indent 12 }}
+    {{- with .Values.ioOnboardingPa.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.ioOnboardingPa.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.ioOnboardingPa.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+
+        # Postgres DB
+        - name: postgres-db
+          image: "{{ .Values.global.registry }}{{ .Values.ioOnboardingPa.images.postgresDb.repository }}:{{ tpl .Values.ioOnboardingPa.images.postgresDb.tag . }}"
+          imagePullPolicy: {{ .Values.ioOnboardingPa.images.postgresDb.pullPolicy }}
+          env:
+            - name: POSTGRES_DB
+              value: "io-onboarding-pa"
+            - name: POSTGRES_USER
+              value: "{{ .Values.ioOnboardingPa.postgresDb.user }}"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: io-onboarding-pa
+                  key: pgpassword
+            - name: PGDATA
+              value: /var/lib/postgresql/data/pgdata
+          ports:
+            - name: postgres-db
+              containerPort: {{ .Values.ioOnboardingPa.services.postgresDb.port }}
+              protocol: {{ .Values.ioOnboardingPa.services.postgresDb.protocol }}
+          volumeMounts:
+            - mountPath: "/var/lib/postgresql/data"
+              name: io-onboarding-pa-postgres
+          resources:
+{{ toYaml .Values.ioOnboardingPa.resources.postgresDb | indent 12 }}
+    {{- with .Values.ioOnboardingPa.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.ioOnboardingPa.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.ioOnboardingPa.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+
+      volumes:
+        - name: io-onboarding-pa-postgres
+          persistentVolumeClaim:
+            claimName: io-onboarding-pa-postgres

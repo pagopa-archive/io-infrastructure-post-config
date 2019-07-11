@@ -1,0 +1,17 @@
+---
+
+# Storage class could be either default (standard) or managed-premium
+# See differences here: https://docs.microsoft.com/it-it/azure/aks/azure-disks-dynamic-pv
+
+apiVersion: v1
+
+kind: PersistentVolumeClaim
+metadata:
+  name: io-onboarding-pa-postgres
+spec:
+  accessModes:
+    - ReadWriteOnce
+  storageClassName: default-custom
+  resources:
+    requests:
+      storage: 10Gi

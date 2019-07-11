@@ -1,0 +1,63 @@
+---
+
+- name: Setup OpenVPN
+  hosts: openvpn
+  gather_facts: yes
+  become: yes
+
+  pre_tasks:
+    - name: Flush IPtables INPUT chain
+      shell: |
+        iptables -F INPUT
+        iptables -F FORWARD
+
+  tags:
+    - openvpn
+
+  roles:
+    - role: blaet.openvpn
+      vars:
+        openvpn_server_hostname: "vpn-srv-01.{{ current_environment }}.io.italia.it"
+        openvpn_port: 443
+        openvpn_proto: tcp
+        openvpn_dualstack: false
+        openvpn_redirect_gateway: false
+        openvpn_server_network: 172.16.254.0
+        openvpn_server_netmask: 255.255.255.0
+        openvpn_push:
+          # io-dev-vnet-common
+          - route 172.16.0.0 255.255.0.0
+          # DNS server
+          - route 168.63.129.16 255.255.255.255
+          - dhcp-option DNS 168.63.129.16
+        openvpn_use_ldap: false
+        openvpn_use_crl: true
+        manage_firewall_rules: false
+        openvpn_client_register_dns: false
+        openvpn_masquerade_not_snat: true
+        openvpn_duplicate_cn: true
+        clients:
+          - teamdigitale-dev
+    - role: abelboldu.ansible-masquerade
+      vars:
+        masquerade_out_interface: 'eth0'
+        masquerade_source: '172.16.254.0/24'
+        masquerade_protocol: 'all'
+    - role: iptables-save
+
+  post_tasks:
+    - name: Remove unused DNS entries
+      lineinfile:
+        path: /etc/openvpn/openvpn_tcp_443.conf
+        regexp: "(1.0.0.1|1.1.1.1|8.8.8.8|8.8.4.4)"
+        state: absent
+    - name: Insert Google DNS after Azure DNS
+      lineinfile:
+        path: /etc/openvpn/openvpn_tcp_443.conf
+        insertafter: "168.63.129.16"
+        line: 'push "dhcp-option DNS 8.8.8.8"'
+        state: present
+    - name: Restart OpenVPN
+      service:
+        name: "{{ openvpn_service_name }}"
+        state: restarted
