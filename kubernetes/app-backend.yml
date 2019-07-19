@@ -70,7 +70,7 @@ spec:
               name: app-backend-secrets
               key: pre_shared_key
         - name: "REDIS_URL"
-          value: "agid-redis-test.redis.cache.windows.net"
+          value: "io-dev-redis-cache-01.redis.cache.windows.net"
         - name: "REDIS_PORT"
           value: "6380"
         - name: "REDIS_PASSWORD"
@@ -79,13 +79,13 @@ spec:
               name: app-backend-secrets
               key: redis_password
         - name: "SAML_CALLBACK_URL"
-          value: "https://app-backend.k8s.test.cd.teamdigitale.it/assertionConsumerService"
+          value: "https://app-backend.k8s.staging.cd.teamdigitale.it/assertionConsumerService"
         - name: "SAML_ISSUER"
           value: "https://spid.agid.gov.it/cd"
         - name: "SAML_ATTRIBUTE_CONSUMING_SERVICE_INDEX"
           value: "0"
         - name: "SPID_TESTENV_URL"
-          value: "https://spid-testenv2.k8s.test.io.italia.it"
+          value: "https://spid-testenv2.k8s.staging.io.italia.it"
         - name: "TOKEN_DURATION_IN_SECONDS"
           # 30 days
           value: "2592000"
