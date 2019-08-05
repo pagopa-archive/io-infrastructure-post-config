@@ -40,11 +40,11 @@ ioOnboardingPa:
       certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
     path: /
     hosts:
-      - pa-onboarding.staging.io.italia.it
+      - pa-onboarding.dev.io.italia.it
     tls:
       - hosts:
-          - pa-onboarding.staging.io.italia.it
-        secretName: io-onboarding-pa-staging-tls
+          - pa-onboarding.dev.io.italia.it
+        secretName: io-onboarding-pa-dev-tls
 
   resources:
     # For each of the following objects, set limits
