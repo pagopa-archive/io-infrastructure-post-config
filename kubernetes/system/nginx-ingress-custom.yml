@@ -5,6 +5,6 @@ controller:
     enabled: "true"
   service:
     externalTrafficPolicy: "Local"
-    loadBalancerIP: 13.80.16.80
+    loadBalancerIP: 13.93.95.21
 rbac:
   create: "true"
