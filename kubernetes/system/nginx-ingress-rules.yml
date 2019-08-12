@@ -27,7 +27,7 @@ spec:
       - spid.dev.io.italia.it
       secretName: spid-testenv2-cert-lep
   rules:
-  - host: app-backend.k8s.staging.io.italia.it
+  - host: app-backend.dev.io.italia.it
     http:
       paths:
       - path: /
