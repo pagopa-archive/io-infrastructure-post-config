@@ -8,12 +8,12 @@
 apiVersion: extensions/v1beta1
 kind: Deployment
 metadata:
-  name: app-backend
+  name: app-backend-rc
   namespace: default
   labels:
-    app: app-backend
+    app: app-backend-rc
 spec:
-  replicas: 8
+  replicas: 1
   strategy:
     type: RollingUpdate
     rollingUpdate:
@@ -22,14 +22,14 @@ spec:
   revisionHistoryLimit: 10
   template:
     metadata:
-      name: app-backend
+      name: app-backend-rc
       namespace: default
       labels:
-        app: app-backend
+        app: app-backend-rc
     spec:
       containers:
       - image: "teamdigitale/italia-backend:v1.3.2"
-        name: app-backend
+        name: app-backend-rc
         ports:
         - name: http-port
           containerPort: 80
@@ -79,13 +79,13 @@ spec:
               name: app-backend-secrets
               key: redis_password
         - name: "SAML_CALLBACK_URL"
-          value: "https://app-backend.k8s.test.cd.teamdigitale.it/assertionConsumerService"
+          value: "https://app-backend.dev.io.italia.it/assertionConsumerService"
         - name: "SAML_ISSUER"
           value: "https://spid.agid.gov.it/cd"
         - name: "SAML_ATTRIBUTE_CONSUMING_SERVICE_INDEX"
           value: "0"
         - name: "SPID_TESTENV_URL"
-          value: "https://spid-testenv2.k8s.test.io.italia.it"
+          value: "https://spid.dev.io.italia.it"
         - name: "TOKEN_DURATION_IN_SECONDS"
           # 30 days
           value: "2592000"
@@ -118,11 +118,11 @@ spec:
 apiVersion: v1
 kind: Service
 metadata:
-  name: app-backend
+  name: app-backend-rc
   namespace: default
 spec:
   selector:
-    app: app-backend
+    app: app-backend-rc
   ports:
     - protocol: TCP
       port: 80

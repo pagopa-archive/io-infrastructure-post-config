@@ -8,7 +8,7 @@ data:
     #
     # Identity provider configuration
     #
-    base_url: "https://spid-testenv2.k8s.test.io.italia.it"
+    base_url: "https://spid.dev.io.italia.it"
 
     # To sign SAML messages
     key_file: "/app/conf/idp.key"
@@ -172,7 +172,7 @@ data:
           <EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#tripledes-cbc"/>
         </KeyDescriptor>
         <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</NameIDFormat>
-        <AssertionConsumerService index="0" isDefault="true" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://app-backend.k8s.test.cd.teamdigitale.it/assertionConsumerService"/>
+        <AssertionConsumerService index="0" isDefault="true" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://app-backend.dev.io.italia.it/assertionConsumerService"/>
         <AttributeConsumingService index="0">
           <ServiceName xml:lang="it">Required attributes</ServiceName>
           <RequestedAttribute Name="fiscalNumber" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:unspecified" FriendlyName="Codice fiscale"/>
