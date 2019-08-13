@@ -10,7 +10,7 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  replicas: {{ .Values.replicaCount }}
+  replicas: {{ .Values.ioOnboardingPa.replicaCount }}
   selector:
     matchLabels:
       app: {{ template "io-onboarding-pa.name" . }}
