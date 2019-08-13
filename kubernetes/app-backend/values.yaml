@@ -1,0 +1,93 @@
+---
+
+global:
+  registry: ''
+
+appBackend:
+
+  replicaCount: 8
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 1
+
+  revisionHistoryLimit: 10
+
+  images:
+    appBackend:
+      repository: teamdigitale/italia-backend
+      tag: v1.3.2
+      pullPolicy: IfNotPresent
+
+  env:
+    allow_notify_ip_source_range: "0.0.0.0/0"
+    allow_pagopa_ip_source_range: "0.0.0.0/0"
+    api_base_path: "/api/v1"
+    api_url: "https://io-dev-apim-01.azure-api.net/api/v1"
+    authentication_base_path: ""
+    azure_nh_hub_name: "io-dev-nh-nh-01"
+    node_env: "development"
+    pagopa_base_path: "/pagopa/api/v1"
+    pagopa_api_url: "http://pagopa-proxy"
+    pagopa_api_url_test: "http://pagopa-proxy-test"
+    redis_url: "io-dev-redis-cache-01.redis.cache.windows.net"
+    redis_port: "6380"
+    saml_callback_url: "https://app-backend.dev.io.italia.it/assertionConsumerService"
+    saml_issuer: "https://spid.agid.gov.it/cd"
+    saml_attribute_consuming_service_index: "0"
+    spid_testenv_url: "https://spid-testenv.dev.io.italia.it"
+    token_duration_in_seconds: "2592000" # 30 days
+    idp_metadata_url: "https://registry.spid.gov.it/metadata/idp/spid-entities-idps.xml"
+    idp_metadata_refresh_interval_seconds: "864000" # 10 days
+
+  spidCert:
+    volumeName: "spid-cert"
+    mountPath: "/usr/src/app/certs"
+    readOnly: true
+
+  services:
+    httpPort:
+      port: 80
+
+  livenessProbe:
+    httpGet:
+      path: "/ping"
+      port: 80
+    initialDelaySeconds: 30
+    timeoutSeconds: 5
+    periodSeconds: 10
+    failureThreshold: 5
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      ingress.kubernetes.io/ssl-redirect: "true"
+      kubernetes.io/tls-acme: "true"
+      certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
+    path: /
+    hosts:
+      - app-backend.dev.io.italia.it
+    tls:
+      - hosts:
+          - app-backend.dev.io.italia.it
+        secretName: app-backend-tls
+
+  resources: {}
+    # To set limits remove the curly brackets
+    # after the resources tag and
+    # uncomment the lines below.
+    # limits:
+    #  cpu: 100m
+    #  memory: 128Mi
+    # requests:
+    #  cpu: 100m
+    #  memory: 128Mi
+
+  nodeSelector: {}
+
+  tolerations: {}
+
+  affinity: {}

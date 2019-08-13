@@ -1,0 +1,134 @@
+---
+
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "app-backend.fullname" . }}
+  labels:
+    app: {{ template "app-backend.name" . }}
+    chart: {{ template "app-backend.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.appBackend.replicaCount }}
+  {{- if .Values.appBackend.strategy }}
+  {{- with .Values.appBackend.strategy }}
+  strategy:
+    type: {{ toYaml .type }}
+    rollingUpdate:
+      maxUnavailable: {{ toYaml .rollingUpdate.maxUnavailable }}
+      maxSurge: {{ toYaml .rollingUpdate.maxSurge }}
+  {{- end }}
+  {{- end }}
+  revisionHistoryLimit: {{ .Values.appBackend.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app: {{ template "app-backend.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "app-backend.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        # App Backend
+        - name: app-backend
+          image: "{{ .Values.global.registry }}{{ .Values.appBackend.images.appBackend.repository }}:{{ tpl .Values.appBackend.images.appBackend.tag . }}"
+          imagePullPolicy: {{ .Values.appBackend.images.appBackend.pullPolicy }}
+          env:
+            - name: "ALLOW_NOTIFY_IP_SOURCE_RANGE"
+              value: "{{ .Values.appBackend.env.allow_notify_ip_source_range }}"
+            - name: "ALLOW_PAGOPA_IP_SOURCE_RANGE"
+              value: "{{ .Values.appBackend.env.allow_pagopa_ip_source_range }}"
+            - name: "API_BASE_PATH"
+              value: "{{ .Values.appBackend.env.api_base_path }}"
+            - name: "API_URL"
+              value: "{{ .Values.appBackend.env.api_url }}"
+            - name: "API_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: app-backend-secrets
+                  key: api_key
+            - name: "AUTHENTICATION_BASE_PATH"
+              value: "{{ .Values.appBackend.env.authentication_base_path }}"
+            - name: "AZURE_NH_ENDPOINT"
+              valueFrom:
+                secretKeyRef:
+                  name: app-backend-secrets
+                  key: azure_nh_endpoint
+            - name: "AZURE_NH_HUB_NAME"
+              value: "{{ .Values.appBackend.env.azure_nh_hub_name }}"
+            - name: "NODE_ENV"
+              value: "{{ .Values.appBackend.env.node_env }}"
+            - name: "PAGOPA_BASE_PATH"
+              value: "{{ .Values.appBackend.env.pagopa_base_path }}"
+            - name: "PAGOPA_API_URL"
+              value: "{{ .Values.appBackend.env.pagopa_api_url }}"
+            - name: "PAGOPA_API_URL_TEST"
+              value: "{{ .Values.appBackend.env.pagopa_api_url_test }}"
+            - name: "PRE_SHARED_KEY"
+              valueFrom:
+                secretKeyRef:
+                  name: app-backend-secrets
+                  key: pre_shared_key
+            - name: "REDIS_URL"
+              value: "{{ .Values.appBackend.env.redis_url }}"
+            - name: "REDIS_PORT"
+              value: "{{ .Values.appBackend.env.redis_port }}"
+            - name: "REDIS_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: app-backend-secrets
+                  key: redis_password
+            - name: "SAML_CALLBACK_URL"
+              value: "{{ .Values.appBackend.env.saml_callback_url }}"
+            - name: "SAML_ISSUER"
+              value: "{{ .Values.appBackend.env.saml_issuer }}"
+            - name: "SAML_ATTRIBUTE_CONSUMING_SERVICE_INDEX"
+              value: "{{ .Values.appBackend.env.saml_attribute_consuming_service_index }}"
+            - name: "SPID_TESTENV_URL"
+              value: "{{ .Values.appBackend.env.spid_testenv_url }}"
+            - name: "TOKEN_DURATION_IN_SECONDS"
+              value: "{{ .Values.appBackend.env.token_duration_in_seconds }}"
+            - name: "IDP_METADATA_URL"
+              value: "{{ .Values.appBackend.env.idp_metadata_url }}"
+            - name: "IDP_METADATA_REFRESH_INTERVAL_SECONDS"
+              value: "{{ .Values.appBackend.env.idp_metadata_refresh_interval_seconds }}"
+          volumeMounts:
+            - name: certs
+              mountPath: {{ .Values.appBackend.spidCert.mountPath }}
+              readOnly: {{ .Values.appBackend.spidCert.readOnly }}
+          {{- with .Values.appBackend.livenessProbe }}
+          livenessProbe:
+            httpGet:
+              path: {{ toYaml .httpGet.path }}
+              port: {{ toYaml .httpGet.port }}
+            initialDelaySeconds: {{ toYaml .initialDelaySeconds }}
+            timeoutSeconds: {{ toYaml .timeoutSeconds }}
+            periodSeconds: {{ toYaml .periodSeconds }}
+            failureThreshold: {{ toYaml .failureThreshold }}
+          {{- end }}
+          ports:
+            - name: app-bknd-http
+              containerPort: {{ .Values.appBackend.services.httpPort.port }}
+              protocol: {{ .Values.appBackend.services.httpPort.protocol }}
+          resources:
+{{ toYaml .Values.appBackend.resources | indent 12 }}
+    {{- with .Values.appBackend.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.appBackend.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.appBackend.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+
+      volumes:
+        - name: certs
+          secret:
+            secretName: {{ .Values.appBackend.spidCert.volumeName }}

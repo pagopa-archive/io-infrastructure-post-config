@@ -1,0 +1,9 @@
+---
+
+apiVersion: v1
+
+name: app-backend
+description: The IO mobile application backend.
+
+version: 0.1.0
+appVersion: "0.1.0"

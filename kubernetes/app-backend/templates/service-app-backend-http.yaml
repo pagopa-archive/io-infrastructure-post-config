@@ -1,0 +1,20 @@
+---
+
+apiVersion: v1
+
+kind: Service
+metadata:
+  name: {{ template "app-backend.fullname" . }}-backend-http
+  labels:
+    app: {{ template "app-backend.name" . }}
+    chart: {{ template "app-backend.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.appBackend.services.httpPort.type }}
+  ports:
+    - name: app-bknd-http
+{{ toYaml .Values.appBackend.services.httpPort | indent 6 }}
+  selector:
+    app: {{ template "app-backend.name" . }}
+    release: {{ .Release.Name }}
