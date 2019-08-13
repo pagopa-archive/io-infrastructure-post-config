@@ -1,0 +1,41 @@
+---
+
+{{- if .Values.spidTestenv.ingress.enabled -}}
+{{- $fullName := include "spid-testenv.fullname" . -}}
+{{- $servicePort := .Values.spidTestenv.services.httpPort.port -}}
+{{- $ingressPath := .Values.spidTestenv.ingress.path -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    app: {{ template "spid-testenv.name" . }}
+    chart: {{ template "spid-testenv.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{- with .Values.spidTestenv.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+{{- if .Values.spidTestenv.ingress.tls }}
+  tls:
+  {{- range .Values.spidTestenv.ingress.tls }}
+    - hosts:
+      {{- range .hosts }}
+        - {{ . }}
+      {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
+{{- end }}
+  rules:
+  {{- range .Values.spidTestenv.ingress.hosts }}
+    - host: {{ . }}
+      http:
+        paths:
+          - path: {{ $ingressPath }}
+            backend:
+              serviceName: {{ $fullName }}-http
+              servicePort: {{ $servicePort }}
+  {{- end }}
+{{- end }}

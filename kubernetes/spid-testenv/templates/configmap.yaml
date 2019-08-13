@@ -1,0 +1,17 @@
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "spid-testenv.fullname" . }}-configmap
+  labels:
+    app: {{ template "spid-testenv.name" . }}
+    chart: {{ template "spid-testenv.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  config.yml: {{ toYaml .Values.spidTestenv.configs.config | indent 4 }}
+  idp.crt: {{ toYaml .Values.spidTestenv.configs.idpCrt | indent 4 }}
+  idp.key: {{ toYaml .Values.spidTestenv.configs.idpKey | indent 4 }}
+  users.json: {{ toYaml .Values.spidTestenv.configs.users | indent 4 }}
+  sp_metadata.xml: {{ toYaml .Values.spidTestenv.configs.spMetadata | indent 4 }}

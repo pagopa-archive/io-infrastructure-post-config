@@ -24,6 +24,19 @@ appBackend:
 
 # app-backend - end
 
+# spid-testenv - start
+
+spidTestenv:
+  ingress:
+    hosts:
+      - spid-testenv.io.italia.it
+    tls:
+      - hosts:
+          - spid-testenv.io.italia.it
+        secretName: spid-testenv-tls
+
+# spid-testenv - end
+
 # io-onboarding-pa - start
 
 ioOnboardingPa:

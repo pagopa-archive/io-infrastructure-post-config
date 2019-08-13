@@ -1,0 +1,86 @@
+---
+
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "spid-testenv.fullname" . }}
+  labels:
+    app: {{ template "spid-testenv.name" . }}
+    chart: {{ template "spid-testenv.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.spidTestenv.replicaCount }}
+  {{- if .Values.spidTestenv.strategy }}
+  {{- with .Values.spidTestenv.strategy }}
+  strategy:
+    type: {{ toYaml .type }}
+    rollingUpdate:
+      maxUnavailable: {{ toYaml .rollingUpdate.maxUnavailable }}
+      maxSurge: {{ toYaml .rollingUpdate.maxSurge }}
+  {{- end }}
+  {{- end }}
+  revisionHistoryLimit: {{ .Values.spidTestenv.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app: {{ template "spid-testenv.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "spid-testenv.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        # App Backend
+        - name: spid-testenv
+          image: "{{ .Values.global.registry }}{{ .Values.spidTestenv.images.spidTestenv.repository }}:{{ tpl .Values.spidTestenv.images.spidTestenv.tag . }}"
+          terminationMessagePolicy: FallbackToLogsOnError
+          imagePullPolicy: {{ .Values.spidTestenv.images.spidTestenv.pullPolicy }}
+          command:
+            {{- range .Values.spidTestenv.initCmd.command }}
+            - {{ . }}
+            {{- end }}
+          args:
+            {{- range .Values.spidTestenv.initCmd.args }}
+            - {{ . }}
+            {{- end }}
+          {{- with .Values.spidTestenv.configs.volumeMountSettings }}
+          volumeMounts:
+            - name: config
+              mountPath: {{ .mountPath }}
+              readOnly: {{ .readOnly }}
+          {{- end }}
+          {{- with .Values.spidTestenv.livenessProbe }}
+          livenessProbe:
+            httpGet:
+              path: {{ toYaml .httpGet.path }}
+              port: {{ toYaml .httpGet.port }}
+            initialDelaySeconds: {{ toYaml .initialDelaySeconds }}
+            timeoutSeconds: {{ toYaml .timeoutSeconds }}
+            periodSeconds: {{ toYaml .periodSeconds }}
+            failureThreshold: {{ toYaml .failureThreshold }}
+          {{- end }}
+          ports:
+            - name: http-port
+              containerPort: {{ .Values.spidTestenv.services.httpPort.port }}
+              protocol: {{ .Values.spidTestenv.services.httpPort.protocol }}
+          resources:
+{{ toYaml .Values.spidTestenv.resources | indent 12 }}
+    {{- with .Values.spidTestenv.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.spidTestenv.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.spidTestenv.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+
+      volumes:
+        - name: config
+          configMap:
+            name: {{ .Values.spidTestenv.configs.volumeMountSettings.configmapName }}

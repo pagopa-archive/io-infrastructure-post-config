@@ -1,0 +1,9 @@
+---
+
+apiVersion: v1
+
+name: spid-testenv
+description: A SPID IDP test environment.
+
+version: 0.1.0
+appVersion: "0.1.0"

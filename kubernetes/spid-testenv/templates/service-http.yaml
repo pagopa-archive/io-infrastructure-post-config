@@ -1,0 +1,20 @@
+---
+
+apiVersion: v1
+
+kind: Service
+metadata:
+  name: {{ template "spid-testenv.fullname" . }}-http
+  labels:
+    app: {{ template "spid-testenv.name" . }}
+    chart: {{ template "spid-testenv.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.spidTestenv.services.httpPort.type }}
+  ports:
+    - name: http-port
+{{ toYaml .Values.spidTestenv.services.httpPort | indent 6 }}
+  selector:
+    app: {{ template "spid-testenv.name" . }}
+    release: {{ .Release.Name }}
