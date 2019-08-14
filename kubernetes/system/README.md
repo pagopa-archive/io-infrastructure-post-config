@@ -78,18 +78,6 @@ helm install stable/nginx-ingress \
     --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux
 ```
 
-## Apply the ingress rules
-
-```shell
-kubectl apply -f nginx-ingress-rules.yml
-```
-
-## Create cluster admin role
-
-```shell
-kubectl apply -f cluster-admin.yml
-```
-
 ## Storage and data persistence
 
 By default Azure uses two storage classes to provide data persistence functionalities: *default* and *managed-premium*. These are automatically configured by Azure at setup time. By default, both classes do not support dynamic storage dimensions upgrades and their reclaim policy is set to Delete, which would cause data to be deleted when a persistent volume (so a chart) gets deleted.
