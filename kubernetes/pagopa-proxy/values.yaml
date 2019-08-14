@@ -1,0 +1,79 @@
+---
+
+global:
+  registry: ''
+
+pagopaProxy:
+
+  replicaCount: 1
+
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 50%
+      maxSurge: 1
+
+  revisionHistoryLimit: 10
+
+  images:
+    pagopaProxy:
+      repository: teamdigitale/italia-pagopa-proxy
+      tag: v0.8.11
+      pullPolicy: IfNotPresent
+
+  env:
+    winston_log_level: "debug"
+    pagopaproxy_host: "localhost"
+    pagopaproxy_port: "80"
+    pagopa_host: "https://gad.test.pagopa.gov.it"
+    pagopa_port: "80"
+    pagopa_host_header: "nodopa.sia.eu"
+    PAGOPA_TIMEOUT_MSEC: "500000"
+    REDIS_DB_URL: "io-dev-redis-cache-01.redis.cache.windows.net"
+    REDIS_DB_PORT: "6380"
+    REDIS_USE_CLUSTER: "true"
+
+  services:
+    httpPort:
+      port: 80
+
+  livenessProbe:
+    httpGet:
+      path: "/ping"
+      port: 80
+    initialDelaySeconds: 30
+    timeoutSeconds: 5
+    periodSeconds: 10
+    failureThreshold: 5
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      ingress.kubernetes.io/ssl-redirect: "true"
+      kubernetes.io/tls-acme: "true"
+      certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
+    path: /
+    hosts:
+      - pagopa-proxy.dev.io.italia.it
+    tls:
+      - hosts:
+          - pagopa-proxy.dev.io.italia.it
+        secretName: pagopa-proxy-tls
+
+  resources: {}
+    # To set limits remove the curly brackets
+    # after the resources tag and
+    # uncomment the lines below.
+    # limits:
+    #  cpu: 100m
+    #  memory: 128Mi
+    # requests:
+    #  cpu: 100m
+    #  memory: 128Mi
+
+  nodeSelector: {}
+
+  tolerations: {}
+
+  affinity: {}

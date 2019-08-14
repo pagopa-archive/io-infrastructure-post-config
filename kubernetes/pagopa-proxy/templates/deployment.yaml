@@ -1,0 +1,118 @@
+---
+
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "pagopa-proxy.fullname" . }}
+  labels:
+    app: {{ template "pagopa-proxy.name" . }}
+    chart: {{ template "pagopa-proxy.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.pagopaProxy.replicaCount }}
+  {{- if .Values.pagopaProxy.strategy }}
+  {{- with .Values.pagopaProxy.strategy }}
+  strategy:
+    type: {{ toYaml .type }}
+    rollingUpdate:
+      maxUnavailable: {{ toYaml .rollingUpdate.maxUnavailable }}
+      maxSurge: {{ toYaml .rollingUpdate.maxSurge }}
+  {{- end }}
+  {{- end }}
+  revisionHistoryLimit: {{ .Values.pagopaProxy.revisionHistoryLimit }}
+  selector:
+    matchLabels:
+      app: {{ template "pagopa-proxy.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "pagopa-proxy.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        # App Backend
+        - name: pagopa-proxy
+          image: "{{ .Values.global.registry }}{{ .Values.pagopaProxy.images.pagopaProxy.repository }}:{{ tpl .Values.pagopaProxy.images.pagopaProxy.tag . }}"
+          imagePullPolicy: {{ .Values.pagopaProxy.images.pagopaProxy.pullPolicy }}
+          env:
+            - name: "WINSTON_LOG_LEVEL"
+              value: "{{ .Values.pagopaProxy.env.winston_log_level }}"
+            - name: "PAGOPAPROXY_HOST"
+              value: "{{ .Values.pagopaProxy.env.pagopaproxy_host }}"
+            - name: "PAGOPAPROXY_PORT"
+              value: "{{ .Values.pagopaProxy.env.pagopaproxy_port }}"
+            - name: "PAGOPA_HOST"
+              value: "{{ .Values.pagopaProxy.env.pagopa_host }}"
+            - name: "PAGOPA_PORT"
+              value: "{{ .Values.pagopaProxy.env.pagopa_port }}"
+            - name: "PAGOPA_HOST_HEADER"
+              value: "{{ .Values.pagopaProxy.env.pagopa_host_header }}"
+            - name: "PAGOPA_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: pagopa-proxy
+                  key: pagopa_password
+            - name: "PAGOPA_ID_PSP"
+              valueFrom:
+                secretKeyRef:
+                  name: pagopa-proxy
+                  key: id_psp
+            - name: "PAGOPA_ID_INT_PSP"
+              valueFrom:
+                secretKeyRef:
+                  name: pagopa-proxy
+                  key: id_intermediario_psp
+            - name: "PAGOPA_ID_CANALE"
+              valueFrom:
+                secretKeyRef:
+                  name: pagopa-proxy
+                  key: id_canale
+            - name: "PAGOPA_ID_CANALE_PAGAMENTO"
+              valueFrom:
+                secretKeyRef:
+                  name: pagopa-proxy
+                  key: id_canale_pagamento
+            - name: "PAGOPA_TIMEOUT_MSEC"
+              value: "{{ .Values.pagopaProxy.env.pagopa_timeout_msec }}"
+            - name: "REDIS_DB_URL"
+              value: "{{ .Values.pagopaProxy.env.redis_db_url }}"
+            - name: "REDIS_DB_PORT"
+              value: "{{ .Values.pagopaProxy.env.redis_db_port }}"
+            - name: "REDIS_DB_PASSWORD"
+              valueFrom:
+                secretKeyRef:
+                  name: pagopa-proxy
+                  key: redis_password
+            - name: "REDIS_USE_CLUSTER"
+              value: "{{ .Values.pagopaProxy.env.redis_use_cluster }}"
+          {{- with .Values.pagopaProxy.livenessProbe }}
+          livenessProbe:
+            httpGet:
+              path: {{ toYaml .httpGet.path }}
+              port: {{ toYaml .httpGet.port }}
+            initialDelaySeconds: {{ toYaml .initialDelaySeconds }}
+            timeoutSeconds: {{ toYaml .timeoutSeconds }}
+            periodSeconds: {{ toYaml .periodSeconds }}
+            failureThreshold: {{ toYaml .failureThreshold }}
+          {{- end }}
+          ports:
+            - name: http-port
+              containerPort: {{ .Values.pagopaProxy.services.httpPort.port }}
+              protocol: {{ .Values.pagopaProxy.services.httpPort.protocol }}
+          resources:
+{{ toYaml .Values.pagopaProxy.resources | indent 12 }}
+    {{- with .Values.pagopaProxy.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.pagopaProxy.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.pagopaProxy.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+

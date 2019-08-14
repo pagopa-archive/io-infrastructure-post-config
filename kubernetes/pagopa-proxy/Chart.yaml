@@ -1,0 +1,9 @@
+---
+
+apiVersion: v1
+
+name: pagopa-proxy
+description: A proxy to transform REST API calls to SOAP calls to PagoPA and viceversa.
+
+version: 0.1.0
+appVersion: "0.1.0"
