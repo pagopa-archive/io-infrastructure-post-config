@@ -7,18 +7,17 @@ helm repo add istio.io https://storage.googleapis.com/istio-release/releases/1.2
 helm repo update
 
 # Create Istio namespace
-kubectl create namespace istio-system
+kubectl create namespace istio-system || true
 
 # Install Istio CRDs
-helm install istio.io/istio-init --name istio-init --namespace istio-system
+helm install istio.io/istio-init --name istio-init --namespace istio-system || true
 
-# Verify that Istio CRDs are equal to 23. Exit otherwise.
-if [ $(kubectl get crds | grep 'istio.io' | wc -l) -eq 23 ]
-then
-  echo ok
-else
-    exit -1
-fi
+# Wait until Istio CRDs are equal to 23.
+while [ $(kubectl get crds | grep 'istio.io' | wc -l) -ne 23 ]
+do
+  echo Istio CRDs should be 23. Waiting for Istio CRDs to be created...
+done
+echo Istio CRDs successfully created. Moving on.
 
 # Install Istio using the default profile (more options at https://istio.io/docs/setup/kubernetes/install/helm/)
 
@@ -32,6 +31,7 @@ helm install istio.io/istio \
   --set 'gateways.istio-egressgateway.secretVolumes[0].mountPath'=/etc/nginx-client-certs \
   --set 'gateways.istio-egressgateway.secretVolumes[1].name'=nginx-ca-certs \
   --set 'gateways.istio-egressgateway.secretVolumes[1].secretName'=nginx-ca-certs \
-  --set 'gateways.istio-egressgateway.secretVolumes[1].mountPath'=/etc/nginx-ca-certs
+  --set 'gateways.istio-egressgateway.secretVolumes[1].mountPath'=/etc/nginx-ca-certs \
+  || true
 
 # Istio installation - end
