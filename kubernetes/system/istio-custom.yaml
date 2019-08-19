@@ -1,0 +1,18 @@
+---
+
+gateways:
+  istio-ingressgateway:
+    loadBalancerIP: 13.80.16.80
+  egressgateway:
+    enabled: true
+    secretVolumes:
+      - name: pagopa-test-client-certs
+        secretName: pagopa-test-client-certs
+        mountPath: /etc/nginx-client-certs
+      - name: pagopa-test-root-ca-cert
+        secretName: pagopa-test-root-ca-cert
+        mountPath: /etc/nginx-ca-certs
+
+global:
+  proxy:
+    accessLogFile: /dev/stdout
