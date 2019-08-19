@@ -47,19 +47,21 @@ More info [here](https://kubernetes-v1-4.github.io/docs/user-guide/kubectl/kubec
 8. At this point you should be able to see the available PODs on the cluster, if any: `kubectl get pods`, and the helm deployments, if any and if helm is installed (`helm ls`). See further instructions below if it's not.
 >NOTE: Your helm client may not be in sync with the Tiller version installed on the server. In these case you can run *helm init --upgrade* to synchronize the two versions.
 
+9. **IMPORTANT:** Before proceeding, make sure you've installed the system components. Otherwise, likely the installation of the applications will fail.
+
+10. Most of the applications below will make use of some secrets, stored manually in Kubernetes. Make sure all secrets are present, and in case copy them from previous deployments.
+
 ## Files and folder structure
 
 The `kubernetes` folder contains different files and folders, each one generally representing a service of IO.
 
-We're currently migrating from plain yaml files (to be deployed with *kubectl*) to *helm charts* .
+Applications are usually distributed as *helm charts*. Just few system configurations are still applied using single *yaml* files.
 
-"Legacy" yaml files are generally represented here by single files. Each file is a service of IO. Helm charts are instead collection of files, contained in a folder named as the service that implements.
+Some of the folders under the root kubernetes directory realize more specific functions:
 
-Few of the sub-folders under the root kubernetes folder realize instead more specific functions:
+* **system** - contains scripts to apply the basic Kubernetes system configurations (follow the readme.md inside the system folder for more info)
 
-* **system** - contains the Kubernetes system related configuration files (follow the readme inside the system folder)
-
-* **configs** - helm configuration value files that extend the basic helm charts default values. Each file generally represents a deployment environment (i.e. dev, prod, ...)
+* **configs** - helm configuration value files that can be optionally used to extend the basic helm charts default values. Each file generally represents a deployment environment (i.e. dev, prod, ...)
 
 ## Deploy generic resources and services using kubectl
 
@@ -72,13 +74,16 @@ kubectl apply -f NAME_OF_THE_FILE.yaml
 For example
 
 ```shell
-kubectl apply -f spid-testenv2.yml
+kubectl apply -f cert-manager-issuers.yaml
 ```
 
 ## Deploy generic resources and services using helm
 
-New IO services are packaged using helm charts.
-The main advantage of using helm charts is that are templates that can be easily extended variables.
+IO services are packaged using helm charts.
+
+Helm charts are represented as collections of files, contained in a folder named as the service that implements.
+
+The main advantage of using helm charts is that they are designed as templates that expose variables that can be easily extended.
 
 Each helm chart configures one or more of the following services:
 
