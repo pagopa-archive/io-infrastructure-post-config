@@ -1,16 +1,15 @@
 ---
+
 apiVersion: networking.istio.io/v1alpha3
 kind: VirtualService
 metadata:
-  generation: 1
   name: direct-gad-test-pagopa-gov-it-through-egress-gateway
-  namespace: default
 spec:
+  hosts:
+  - gad.test.pagopa.gov.it
   gateways:
   - istio-egressgateway
   - mesh
-  hosts:
-  - gad.test.pagopa.gov.it
   http:
   - match:
     - gateways:
@@ -19,17 +18,34 @@ spec:
     route:
     - destination:
         host: istio-egressgateway.istio-system.svc.cluster.local
-        port:
-          number: 443
         subset: gad-test-pagopa-gov-it
+        port:
+          number: 80
       weight: 100
   - match:
     - gateways:
       - istio-egressgateway
-      port: 443
+      port: 80
     route:
     - destination:
         host: gad.test.pagopa.gov.it
         port:
           number: 443
       weight: 100
+
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: originate-tls-for-gad-test-pagopa-gov-it
+spec:
+  host: gad.test.pagopa.gov.it
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    portLevelSettings:
+    - port:
+        number: 443
+      tls:
+        mode: SIMPLE

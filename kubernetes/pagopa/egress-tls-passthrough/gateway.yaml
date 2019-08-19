@@ -1,0 +1,67 @@
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: Gateway
+metadata:
+  name: istio-egressgateway
+spec:
+  selector:
+    istio: egressgateway
+  servers:
+  - port:
+      number: 443
+      name: tls
+      protocol: TLS
+    hosts:
+    - gad.test.pagopa.gov.it
+    tls:
+      mode: PASSTHROUGH
+
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: egressgateway-for-gad-test-pagopa-gov-it
+spec:
+  host: istio-egressgateway.istio-system.svc.cluster.local
+  subsets:
+  - name: gad-test-pagopa-gov-it
+
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: direct-gad-test-pagopa-gov-it-through-egress-gateway
+spec:
+  hosts:
+  - gad.test.pagopa.gov.it
+  gateways:
+  - mesh
+  - istio-egressgateway
+  tls:
+  - match:
+    - gateways:
+      - mesh
+      port: 443
+      sni_hosts:
+      - gad.test.pagopa.gov.it
+    route:
+    - destination:
+        host: istio-egressgateway.istio-system.svc.cluster.local
+        subset: gad-test-pagopa-gov-it
+        port:
+          number: 443
+  - match:
+    - gateways:
+      - istio-egressgateway
+      port: 443
+      sni_hosts:
+      - gad.test.pagopa.gov.it
+    route:
+    - destination:
+        host: gad.test.pagopa.gov.it
+        port:
+          number: 443
+      weight: 100

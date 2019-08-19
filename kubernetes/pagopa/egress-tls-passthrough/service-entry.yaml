@@ -1,0 +1,14 @@
+---
+
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: gad-test-pagopa-gov-it
+spec:
+  hosts:
+  - gad.test.pagopa.gov.it
+  ports:
+  - number: 443
+    name: tls
+    protocol: TLS
+  resolution: DNS
