@@ -1,4 +1,4 @@
-# IO (Digital Citizenship) Kubernetes confiuration files
+# IO (Digital Citizenship) Kubernetes configuration files
 
 This directory contains the configuration for deploying the backend components
 of the IO project in the Kubernetes (K8S) cluster, previously provisioned by Terraform.
