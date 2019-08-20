@@ -2,7 +2,7 @@
 
 controller:
   nodeSelector:
-    beta\.kubernetes\.io/os: linux
+    beta.kubernetes.io/os: linux
   replicaCount: 2
   metrics:
     enabled: "true"
@@ -13,6 +13,6 @@ controller:
     loadBalancerIP: 13.93.95.21
 defaultBackend:
   nodeSelector:
-    beta\.kubernetes\.io/os: linux
+    beta.kubernetes.io/os: linux
 rbac:
   create: "true"
