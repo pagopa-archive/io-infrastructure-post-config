@@ -77,7 +77,7 @@ For example
 kubectl apply -f cert-manager-issuers.yaml
 ```
 
-## Deploy generic resources and services using helm
+## Deploy resources and services using helm
 
 IO services are packaged using helm charts.
 
@@ -121,7 +121,56 @@ For example
 helm install -f configs/dev.yaml -n io-onboarding-pa io-onboarding-pa
 ```
 
-To remove an existing PDND service
+## List installed charts
+
+To list the charts currently deployed, run
+
+```shell
+helm ls
+```
+
+## Upgrade an existing service
+
+To upgrade an existing service (for example if a value of a chart needs to be updated, and then the chart re-deployed), follow the procedure below:
+
+1) Change the relevant value, either in the `value.yaml` file in the chart folder or in one of the configuration files in the configs folder
+
+2) Upgrade the existing chart to use the new value
+
+```shell
+helm upgrade EXISTING_DEPLOYMENT_NAME CHART_NAME
+```
+
+3) Update the app version and the chart version in *Chart.yaml* file.
+
+Let's say for example you just released a new version of the application *app-backend* (creating a new tag, so a new tagged image), and you want to deploy it. This is what you'll need to do:
+
+1) Edit the *values.yaml* file in the *app-backend* folder: update the *tag* value as needed (for example, instead of 1.32, set 1.33)
+
+2) Run a helm upgrade to deploy the new values. To do this, check first the name of the helm package currently installed, then run the upgrade
+
+```shell
+$ helm ls
+NAME                    REVISION    UPDATED                     STATUS      CHART                   NAMESPACE
+app-backend             1           Tue Aug 20 14:40:57 2019    DEPLOYED    app-backend-0.1.0       default
+cert-manager            1           Sat Jun 29 14:12:15 2019    DEPLOYED    cert-manager-v0.8.0     cert-manager
+io-onboarding-pa-api    1           Tue Aug 20 10:37:16 2019    DEPLOYED    io-onboarding-pa-0.1.0  default
+istio                   2           Fri Aug 16 18:18:19 2019    DEPLOYED    istio-1.2.2             istio-system
+istio-init              1           Fri Aug 16 15:57:47 2019    DEPLOYED    istio-init-1.2.2        istio-system
+nginx-ingress           1           Tue Aug 20 10:32:02 2019    DEPLOYED    nginx-ingress-1.15.1    ingress
+pagopa-proxy            1           Tue Aug 20 10:37:39 2019    DEPLOYED    pagopa-proxy-0.1.0      default
+spid-testenv            1           Tue Aug 20 10:37:28 2019    DEPLOYED    spid-testenv-0.1.0      default
+```
+
+As you can see, there's a chart installed, called *app-backend*. That's the package you want to upgrade!
+
+```shell
+helm upgrade app-backend app-backend
+```
+
+The deployment now runs the newer version of the image.
+
+## Remove an existing service
 
 ```shell
 helm delete --purge [DEPLOYMENT_NAME]
