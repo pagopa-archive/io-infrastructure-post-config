@@ -1,0 +1,47 @@
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: ServiceEntry
+metadata:
+  name: gad-test-pagopa-gov-it
+spec:
+  hosts:
+  - gad.test.pagopa.gov.it
+  ports:
+  - number: 80
+    name: http-port
+    protocol: HTTP
+  - number: 443
+    name: http-port-for-tls-orgi
+    protocol: HTTP
+  resolution: DNS
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: VirtualService
+metadata:
+  name: gad-test-pagopa-gov-it
+spec:
+  hosts:
+  - gad.test.pagopa.gov.it
+  http:
+  - match:
+    - port: 80
+    route:
+    - destination:
+        host: gad.test.pagopa.gov.it
+        port:
+          number: 443
+---
+apiVersion: networking.istio.io/v1alpha3
+kind: DestinationRule
+metadata:
+  name: gad-test-pagopa-gov-it
+spec:
+  host: gad.test.pagopa.gov.it
+  trafficPolicy:
+    loadBalancer:
+      simple: ROUND_ROBIN
+    portLevelSettings:
+    - port:
+        number: 443
+      tls:
+        mode: SIMPLE 
