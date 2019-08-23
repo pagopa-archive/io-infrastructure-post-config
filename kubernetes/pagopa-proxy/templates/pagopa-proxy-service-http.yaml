@@ -11,10 +11,10 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  type: {{ .Values.pagopaProxy.services.httpPort.type }}
+  type: {{ .Values.pagopaProxy.services.pagopaProxy.httpPort.type }}
   ports:
-    - name: http-port
-{{ toYaml .Values.pagopaProxy.services.httpPort | indent 6 }}
+    - port: {{ .Values.pagopaProxy.services.pagopaProxy.httpPort.servicePort }}
+      targetPort: {{ .Values.pagopaProxy.services.pagopaProxy.httpPort.containerPort }}
   selector:
     app: {{ template "pagopa-proxy.name" . }}
     release: {{ .Release.Name }}

@@ -20,46 +20,131 @@ pagopaProxy:
       repository: teamdigitale/italia-pagopa-proxy
       tag: v0.8.11
       pullPolicy: IfNotPresent
+    pagopaProxyNginxTls:
+      repository: nginx
+      tag: 1.17.3-alpine
+      pullPolicy: IfNotPresent
 
   env:
-    winston_log_level: "debug"
-    pagopaproxy_host: "localhost"
-    pagopaproxy_port: "80"
-    pagopa_host: "https://gad.test.pagopa.gov.it"
-    pagopa_port: "80"
-    pagopa_host_header: "nodopa.sia.eu"
-    PAGOPA_TIMEOUT_MSEC: "500000"
-    REDIS_DB_URL: "io-dev-redis-cache-01.redis.cache.windows.net"
-    REDIS_DB_PORT: "6380"
-    REDIS_USE_CLUSTER: "true"
+    pagopaProxy:
+      winston_log_level: "debug"
+      pagopaproxy_host: "localhost"
+      pagopaproxy_port: "8080"
+      pagopa_host: "http://test.pagopa"
+      pagopa_port: "80"
+      pagopa_host_header: "nodopa.sia.eu"
+      pagopa_timeout_msec: "500000"
+      redis_db_url: "io-dev-redis-cache-01.redis.cache.windows.net"
+      redis_db_port: "6380"
+      redis_use_cluster: true
+    pagopaProxyNginxTls:
+      nginx_port: "80"
 
   services:
-    httpPort:
-      port: 80
+    pagopaProxy:
+      httpPort:
+        servicePort: 80
+        containerPort: 8080
+    pagopaProxyNginxTls:
+      httpPort:
+        servicePort: 80
+        containerPort: 80
+
+  configs:
+    pagopaProxyNginxTls:
+      nginxConfig:
+        volumeMountSettings:
+          configmapName: pagopa-proxy-nginx-tls-configmap
+          mountPath: "/etc/nginx/conf.d/tmp"
+          readOnly: true
+        pagopaTest: |
+          server {
+            listen ${NGINX_PORT};
+
+            server_name test.pagopa;
+
+            location / {
+              proxy_pass                    https://gad.test.pagopa.gov.it/;
+              proxy_set_header              Content-Type text/xml;
+
+              proxy_ssl_certificate         /etc/nginx/io_certs_test/tls.crt;
+              proxy_ssl_certificate_key     /etc/nginx/io_certs_test/tls.key;
+              proxy_ssl_protocols           TLSv1.2;
+              proxy_ssl_trusted_certificate /etc/nginx/pagopa_ca_certs_test/ca.crt;
+              proxy_ssl_verify              on;
+              proxy_ssl_verify_depth        2;
+              proxy_ssl_session_reuse       on;
+            }
+          }
+        pagopaProd: |
+          server {
+            listen ${NGINX_PORT};
+
+            server_name prod.pagopa;
+
+            location / {
+              proxy_pass                    https://gad.test.pagopa.gov.it/;
+              proxy_set_header              Content-Type text/xml;
+
+              proxy_ssl_certificate         /etc/nginx/io_certs_prod/tls.crt;
+              proxy_ssl_certificate_key     /etc/nginx/io_certs_prod/tls.key;
+              proxy_ssl_protocols           TLSv1.2;
+              proxy_ssl_trusted_certificate /etc/nginx/pagopa_ca_certs_prod/ca.crt;
+              proxy_ssl_verify              on;
+              proxy_ssl_verify_depth        2;
+              proxy_ssl_session_reuse       on;
+            }
+          }
+      pagopaCaCertsTestConfig:
+        volumeMountSettings:
+          secretName: pagopa-proxy-pagopa-ca-test-certs
+          mountPath: "/etc/nginx/pagopa_ca_certs_test"
+          readOnly: true
+      pagopaCaCertsProdConfig:
+        volumeMountSettings:
+          secretName: pagopa-proxy-pagopa-ca-test-certs
+          mountPath: "/etc/nginx/pagopa_ca_certs_prod"
+          readOnly: true
+      ioCertsTestConfig:
+        volumeMountSettings:
+          secretName: pagopa-proxy-io-test-certs
+          mountPath: "/etc/nginx/io_certs_test"
+          readOnly: true
+      ioCertsProdConfig:
+        volumeMountSettings:
+          secretName: pagopa-proxy-io-test-certs
+          mountPath: "/etc/nginx/io_certs_prod"
+          readOnly: true
 
   livenessProbe:
-    httpGet:
-      path: "/ping"
-      port: 80
-    initialDelaySeconds: 30
-    timeoutSeconds: 5
-    periodSeconds: 10
-    failureThreshold: 5
+    pagopaProxy:
+      httpGet:
+        path: "/ping"
+        port: 8080
+      initialDelaySeconds: 30
+      timeoutSeconds: 5
+      periodSeconds: 10
+      failureThreshold: 5
 
   ingress:
     enabled: true
     annotations:
       kubernetes.io/ingress.class: "nginx"
+      # Force HTTPs
       ingress.kubernetes.io/ssl-redirect: "true"
-      kubernetes.io/tls-acme: "true"
-      certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
+      # Enable client certificate authentication
+      nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
+      # Validate both the client certificate and the intermediate certificate
+      nginx.ingress.kubernetes.io/auth-tls-verify-depth: "2"
+      # The secret containing the trusted ca certificates
+      nginx.ingress.kubernetes.io/auth-tls-secret: "default/pagopa-proxy-pagopa-ca-test-certs"
     path: /
     hosts:
-      - pagopa-proxy.dev.io.italia.it
+      - pagopa.dev.io.italia.it
     tls:
       - hosts:
-          - pagopa-proxy.dev.io.italia.it
-        secretName: pagopa-proxy-tls
+          - pagopa.dev.io.italia.it
+        secretName: pagopa-proxy-io-test-certs
 
   resources: {}
     # To set limits remove the curly brackets

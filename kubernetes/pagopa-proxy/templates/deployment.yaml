@@ -31,24 +31,33 @@ spec:
         app: {{ template "pagopa-proxy.name" . }}
         release: {{ .Release.Name }}
     spec:
+      # Configuration to match Nginx TLS proxy
+      # hostnames, so redirecting traffic either
+      # to gad-test or gad-prod host.
+      hostAliases:
+      - ip: "127.0.0.1"
+        hostnames:
+        - "test.pagopa"
+        - "prod.pagopa"
+
       containers:
-        # App Backend
+        # PagoPA Proxy
         - name: pagopa-proxy
           image: "{{ .Values.global.registry }}{{ .Values.pagopaProxy.images.pagopaProxy.repository }}:{{ tpl .Values.pagopaProxy.images.pagopaProxy.tag . }}"
           imagePullPolicy: {{ .Values.pagopaProxy.images.pagopaProxy.pullPolicy }}
           env:
             - name: "WINSTON_LOG_LEVEL"
-              value: "{{ .Values.pagopaProxy.env.winston_log_level }}"
+              value: "{{ .Values.pagopaProxy.env.pagopaProxy.winston_log_level }}"
             - name: "PAGOPAPROXY_HOST"
-              value: "{{ .Values.pagopaProxy.env.pagopaproxy_host }}"
+              value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopaproxy_host }}"
             - name: "PAGOPAPROXY_PORT"
-              value: "{{ .Values.pagopaProxy.env.pagopaproxy_port }}"
+              value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopaproxy_port }}"
             - name: "PAGOPA_HOST"
-              value: "{{ .Values.pagopaProxy.env.pagopa_host }}"
+              value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopa_host }}"
             - name: "PAGOPA_PORT"
-              value: "{{ .Values.pagopaProxy.env.pagopa_port }}"
+              value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopa_port }}"
             - name: "PAGOPA_HOST_HEADER"
-              value: "{{ .Values.pagopaProxy.env.pagopa_host_header }}"
+              value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopa_host_header }}"
             - name: "PAGOPA_PASSWORD"
               valueFrom:
                 secretKeyRef:
@@ -75,19 +84,19 @@ spec:
                   name: pagopa-proxy
                   key: id_canale_pagamento
             - name: "PAGOPA_TIMEOUT_MSEC"
-              value: "{{ .Values.pagopaProxy.env.pagopa_timeout_msec }}"
+              value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopa_timeout_msec }}"
             - name: "REDIS_DB_URL"
-              value: "{{ .Values.pagopaProxy.env.redis_db_url }}"
+              value: "{{ .Values.pagopaProxy.env.pagopaProxy.redis_db_url }}"
             - name: "REDIS_DB_PORT"
-              value: "{{ .Values.pagopaProxy.env.redis_db_port }}"
+              value: "{{ .Values.pagopaProxy.env.pagopaProxy.redis_db_port }}"
             - name: "REDIS_DB_PASSWORD"
               valueFrom:
                 secretKeyRef:
                   name: pagopa-proxy
                   key: redis_password
             - name: "REDIS_USE_CLUSTER"
-              value: "{{ .Values.pagopaProxy.env.redis_use_cluster }}"
-          {{- with .Values.pagopaProxy.livenessProbe }}
+              value: "{{ .Values.pagopaProxy.env.pagopaProxy.redis_use_cluster }}"
+          {{- with .Values.pagopaProxy.livenessProbe.pagopaProxy }}
           livenessProbe:
             httpGet:
               path: {{ toYaml .httpGet.path }}
@@ -98,12 +107,61 @@ spec:
             failureThreshold: {{ toYaml .failureThreshold }}
           {{- end }}
           ports:
-            - name: http-port
-              containerPort: {{ .Values.pagopaProxy.services.httpPort.port }}
-              protocol: {{ .Values.pagopaProxy.services.httpPort.protocol }}
+            - name: ppa-http
+              containerPort: {{ .Values.pagopaProxy.services.pagopaProxy.httpPort.containerPort }}
+              protocol: {{ .Values.pagopaProxy.services.pagopaProxy.httpPort.protocol }}
           resources:
 {{ toYaml .Values.pagopaProxy.resources | indent 12 }}
-    {{- with .Values.pagopaProxy.nodeSelector }}
+
+        # PagoPA Nginx Proxy to originate TLS connections
+        - name: pagopa-proxy-nginx-tls
+          image: "{{ .Values.global.registry }}{{ .Values.pagopaProxy.images.pagopaProxyNginxTls.repository }}:{{ tpl .Values.pagopaProxy.images.pagopaProxyNginxTls.tag . }}"
+          imagePullPolicy: {{ .Values.pagopaProxy.images.pagopaProxyNginxTls.pullPolicy }}
+          env:
+            - name: "NGINX_PORT"
+              value: "{{ .Values.pagopaProxy.env.pagopaProxyNginxTls.nginx_port }}"
+          command:
+            - "/bin/sh"
+          args:
+            - "-c"
+            - |
+              envsubst < /etc/nginx/conf.d/tmp/pagopa_proxy_nginx_tls_test.template > /etc/nginx/conf.d/pagopa_proxy_nginx_tls_test.conf &&
+              envsubst < /etc/nginx/conf.d/tmp/pagopa_proxy_nginx_tls_prod.template > /etc/nginx/conf.d/pagopa_proxy_nginx_tls_prod.conf &&
+              exec nginx -g 'daemon off;'
+          {{- with .Values.pagopaProxy.configs.pagopaProxyNginxTls.nginxConfig.volumeMountSettings }}
+          volumeMounts:
+            - name: pagopa-proxy-nginx-tls-config
+              mountPath: {{ .mountPath }}
+              readOnly: {{ .readOnly }}
+          {{- end }}
+          {{- with .Values.pagopaProxy.configs.pagopaProxyNginxTls.ioCertsTestConfig.volumeMountSettings }}
+            - name: pagopa-proxy-nginx-tls-io-certs-test-config
+              mountPath: {{ .mountPath }}
+              readOnly: {{ .readOnly }}
+          {{- end }}
+          {{- with .Values.pagopaProxy.configs.pagopaProxyNginxTls.ioCertsProdConfig.volumeMountSettings }}
+            - name: pagopa-proxy-nginx-tls-io-certs-prod-config
+              mountPath: {{ .mountPath }}
+              readOnly: {{ .readOnly }}
+          {{- end }}
+          {{- with .Values.pagopaProxy.configs.pagopaProxyNginxTls.pagopaCaCertsTestConfig.volumeMountSettings }}
+            - name: pagopa-proxy-nginx-tls-pagopa-ca-certs-test-config
+              mountPath: {{ .mountPath }}
+              readOnly: {{ .readOnly }}
+          {{- end }}
+          {{- with .Values.pagopaProxy.configs.pagopaProxyNginxTls.pagopaCaCertsProdConfig.volumeMountSettings }}
+            - name: pagopa-proxy-nginx-tls-pagopa-ca-certs-prod-config
+              mountPath: {{ .mountPath }}
+              readOnly: {{ .readOnly }}
+          {{- end }}
+          ports:
+            - name: ppa-nginx-http
+              containerPort: {{ .Values.pagopaProxy.services.pagopaProxyNginxTls.httpPort.containerPort }}
+              protocol: {{ .Values.pagopaProxy.services.pagopaProxyNginxTls.httpPort.protocol }}
+          resources:
+{{ toYaml .Values.pagopaProxy.resources | indent 12 }}
+
+{{- with .Values.pagopaProxy.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}
     {{- end }}
@@ -116,3 +174,19 @@ spec:
 {{ toYaml . | indent 8 }}
     {{- end }}
 
+      volumes:
+        - name: pagopa-proxy-nginx-tls-config
+          configMap:
+            name: {{ .Values.pagopaProxy.configs.pagopaProxyNginxTls.nginxConfig.volumeMountSettings.configmapName }}
+        - name: pagopa-proxy-nginx-tls-io-certs-test-config
+          secret:
+            secretName: {{ .Values.pagopaProxy.configs.pagopaProxyNginxTls.ioCertsTestConfig.volumeMountSettings.secretName }}
+        - name: pagopa-proxy-nginx-tls-io-certs-prod-config
+          secret:
+            secretName: {{ .Values.pagopaProxy.configs.pagopaProxyNginxTls.ioCertsProdConfig.volumeMountSettings.secretName }}
+        - name: pagopa-proxy-nginx-tls-pagopa-ca-certs-test-config
+          secret:
+            secretName: {{ .Values.pagopaProxy.configs.pagopaProxyNginxTls.pagopaCaCertsTestConfig.volumeMountSettings.secretName }}
+        - name: pagopa-proxy-nginx-tls-pagopa-ca-certs-prod-config
+          secret:
+            secretName: {{ .Values.pagopaProxy.configs.pagopaProxyNginxTls.pagopaCaCertsProdConfig.volumeMountSettings.secretName }}

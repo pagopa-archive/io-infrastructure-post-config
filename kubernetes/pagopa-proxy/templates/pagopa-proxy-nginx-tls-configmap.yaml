@@ -1,0 +1,14 @@
+---
+
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ template "pagopa-proxy.fullname" . }}-nginx-tls-configmap
+  labels:
+    app: {{ template "pagopa-proxy.name" . }}
+    chart: {{ template "pagopa-proxy.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+data:
+  pagopa_proxy_nginx_tls_test.template: {{ toYaml .Values.pagopaProxy.configs.pagopaProxyNginxTls.nginxConfig.pagopaTest | indent 4 }}
+  pagopa_proxy_nginx_tls_prod.template: {{ toYaml .Values.pagopaProxy.configs.pagopaProxyNginxTls.nginxConfig.pagopaProd | indent 4 }}
