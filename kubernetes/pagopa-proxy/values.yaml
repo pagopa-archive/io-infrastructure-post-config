@@ -30,8 +30,8 @@ pagopaProxy:
       winston_log_level: "debug"
       pagopaproxy_host: "localhost"
       pagopaproxy_port: "8080"
-      pagopa_host: "http://test.pagopa"
-      pagopa_port: "80"
+      pagopa_nginx_tls_host: "http://test.pagopa"
+      pagopa_nginx_tls_port: "80"
       pagopa_host_header: "nodopa.sia.eu"
       pagopa_timeout_msec: "500000"
       redis_db_url: "io-dev-redis-cache-01.redis.cache.windows.net"
@@ -39,6 +39,8 @@ pagopaProxy:
       redis_use_cluster: true
     pagopaProxyNginxTls:
       nginx_port: "80"
+      server_name: "test.pagopa"
+      pagopa_host: "https://gad.test.pagopa.gov.it/"
 
   services:
     pagopaProxy:
@@ -57,63 +59,34 @@ pagopaProxy:
           configmapName: pagopa-proxy-nginx-tls-configmap
           mountPath: "/etc/nginx/conf.d/tmp"
           readOnly: true
-        pagopaTest: |
+        data: |
           server {
             listen ${NGINX_PORT};
 
-            server_name test.pagopa;
+            server_name ${SERVER_NAME};
 
             location / {
-              proxy_pass                    https://gad.test.pagopa.gov.it/;
+              proxy_pass                    ${PAGOPA_HOST};
               proxy_set_header              Content-Type text/xml;
 
-              proxy_ssl_certificate         /etc/nginx/io_certs_test/tls.crt;
-              proxy_ssl_certificate_key     /etc/nginx/io_certs_test/tls.key;
+              proxy_ssl_certificate         /etc/nginx/io_certs/tls.crt;
+              proxy_ssl_certificate_key     /etc/nginx/io_certs/tls.key;
               proxy_ssl_protocols           TLSv1.2;
-              proxy_ssl_trusted_certificate /etc/nginx/pagopa_ca_certs_test/ca.crt;
+              proxy_ssl_trusted_certificate /etc/nginx/pagopa_ca_certs/ca.crt;
               proxy_ssl_verify              on;
               proxy_ssl_verify_depth        2;
               proxy_ssl_session_reuse       on;
             }
           }
-        pagopaProd: |
-          server {
-            listen ${NGINX_PORT};
-
-            server_name prod.pagopa;
-
-            location / {
-              proxy_pass                    https://gad.test.pagopa.gov.it/;
-              proxy_set_header              Content-Type text/xml;
-
-              proxy_ssl_certificate         /etc/nginx/io_certs_prod/tls.crt;
-              proxy_ssl_certificate_key     /etc/nginx/io_certs_prod/tls.key;
-              proxy_ssl_protocols           TLSv1.2;
-              proxy_ssl_trusted_certificate /etc/nginx/pagopa_ca_certs_prod/ca.crt;
-              proxy_ssl_verify              on;
-              proxy_ssl_verify_depth        2;
-              proxy_ssl_session_reuse       on;
-            }
-          }
-      pagopaCaCertsTestConfig:
+      pagopaCaCertsConfig:
         volumeMountSettings:
           secretName: pagopa-proxy-pagopa-ca-test-certs
-          mountPath: "/etc/nginx/pagopa_ca_certs_test"
+          mountPath: "/etc/nginx/pagopa_ca_certs"
           readOnly: true
-      pagopaCaCertsProdConfig:
-        volumeMountSettings:
-          secretName: pagopa-proxy-pagopa-ca-test-certs
-          mountPath: "/etc/nginx/pagopa_ca_certs_prod"
-          readOnly: true
-      ioCertsTestConfig:
+      ioCertsConfig:
         volumeMountSettings:
           secretName: pagopa-proxy-io-test-certs
-          mountPath: "/etc/nginx/io_certs_test"
-          readOnly: true
-      ioCertsProdConfig:
-        volumeMountSettings:
-          secretName: pagopa-proxy-io-test-certs
-          mountPath: "/etc/nginx/io_certs_prod"
+          mountPath: "/etc/nginx/io_certs"
           readOnly: true
 
   livenessProbe:

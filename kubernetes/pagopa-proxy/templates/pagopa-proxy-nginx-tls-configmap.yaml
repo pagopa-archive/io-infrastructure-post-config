@@ -10,5 +10,4 @@ metadata:
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 data:
-  pagopa_proxy_nginx_tls_test.template: {{ toYaml .Values.pagopaProxy.configs.pagopaProxyNginxTls.nginxConfig.pagopaTest | indent 4 }}
-  pagopa_proxy_nginx_tls_prod.template: {{ toYaml .Values.pagopaProxy.configs.pagopaProxyNginxTls.nginxConfig.pagopaProd | indent 4 }}
+  pagopa_proxy_nginx_tls.template: {{ toYaml .Values.pagopaProxy.configs.pagopaProxyNginxTls.nginxConfig.data | indent 4 }}

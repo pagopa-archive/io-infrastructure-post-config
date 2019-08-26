@@ -37,8 +37,7 @@ spec:
       hostAliases:
       - ip: "127.0.0.1"
         hostnames:
-        - "test.pagopa"
-        - "prod.pagopa"
+        - "{{ .Values.pagopaProxy.env.pagopaProxyNginxTls.server_name }}"
 
       containers:
         # PagoPA Proxy
@@ -53,9 +52,9 @@ spec:
             - name: "PAGOPAPROXY_PORT"
               value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopaproxy_port }}"
             - name: "PAGOPA_HOST"
-              value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopa_host }}"
+              value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopa_nginx_tls_host }}"
             - name: "PAGOPA_PORT"
-              value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopa_port }}"
+              value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopa_nginx_tls_port }}"
             - name: "PAGOPA_HOST_HEADER"
               value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopa_host_header }}"
             - name: "PAGOPA_PASSWORD"
@@ -120,13 +119,16 @@ spec:
           env:
             - name: "NGINX_PORT"
               value: "{{ .Values.pagopaProxy.env.pagopaProxyNginxTls.nginx_port }}"
+            - name: "SERVER_NAME"
+              value: "{{ .Values.pagopaProxy.env.pagopaProxyNginxTls.server_name }}"
+            - name: "PAGOPA_HOST"
+              value: "{{ .Values.pagopaProxy.env.pagopaProxyNginxTls.pagopa_host }}"
           command:
             - "/bin/sh"
           args:
             - "-c"
             - |
-              envsubst < /etc/nginx/conf.d/tmp/pagopa_proxy_nginx_tls_test.template > /etc/nginx/conf.d/pagopa_proxy_nginx_tls_test.conf &&
-              envsubst < /etc/nginx/conf.d/tmp/pagopa_proxy_nginx_tls_prod.template > /etc/nginx/conf.d/pagopa_proxy_nginx_tls_prod.conf &&
+              envsubst < /etc/nginx/conf.d/tmp/pagopa_proxy_nginx_tls.template > /etc/nginx/conf.d/pagopa_proxy_nginx_tls.conf &&
               exec nginx -g 'daemon off;'
           {{- with .Values.pagopaProxy.configs.pagopaProxyNginxTls.nginxConfig.volumeMountSettings }}
           volumeMounts:
@@ -134,23 +136,13 @@ spec:
               mountPath: {{ .mountPath }}
               readOnly: {{ .readOnly }}
           {{- end }}
-          {{- with .Values.pagopaProxy.configs.pagopaProxyNginxTls.ioCertsTestConfig.volumeMountSettings }}
-            - name: pagopa-proxy-nginx-tls-io-certs-test-config
+          {{- with .Values.pagopaProxy.configs.pagopaProxyNginxTls.ioCertsConfig.volumeMountSettings }}
+            - name: pagopa-proxy-nginx-tls-io-certs-config
               mountPath: {{ .mountPath }}
               readOnly: {{ .readOnly }}
           {{- end }}
-          {{- with .Values.pagopaProxy.configs.pagopaProxyNginxTls.ioCertsProdConfig.volumeMountSettings }}
-            - name: pagopa-proxy-nginx-tls-io-certs-prod-config
-              mountPath: {{ .mountPath }}
-              readOnly: {{ .readOnly }}
-          {{- end }}
-          {{- with .Values.pagopaProxy.configs.pagopaProxyNginxTls.pagopaCaCertsTestConfig.volumeMountSettings }}
-            - name: pagopa-proxy-nginx-tls-pagopa-ca-certs-test-config
-              mountPath: {{ .mountPath }}
-              readOnly: {{ .readOnly }}
-          {{- end }}
-          {{- with .Values.pagopaProxy.configs.pagopaProxyNginxTls.pagopaCaCertsProdConfig.volumeMountSettings }}
-            - name: pagopa-proxy-nginx-tls-pagopa-ca-certs-prod-config
+          {{- with .Values.pagopaProxy.configs.pagopaProxyNginxTls.pagopaCaCertsConfig.volumeMountSettings }}
+            - name: pagopa-proxy-nginx-tls-pagopa-ca-certs-config
               mountPath: {{ .mountPath }}
               readOnly: {{ .readOnly }}
           {{- end }}
@@ -178,15 +170,9 @@ spec:
         - name: pagopa-proxy-nginx-tls-config
           configMap:
             name: {{ .Values.pagopaProxy.configs.pagopaProxyNginxTls.nginxConfig.volumeMountSettings.configmapName }}
-        - name: pagopa-proxy-nginx-tls-io-certs-test-config
+        - name: pagopa-proxy-nginx-tls-io-certs-config
           secret:
-            secretName: {{ .Values.pagopaProxy.configs.pagopaProxyNginxTls.ioCertsTestConfig.volumeMountSettings.secretName }}
-        - name: pagopa-proxy-nginx-tls-io-certs-prod-config
+            secretName: {{ .Values.pagopaProxy.configs.pagopaProxyNginxTls.ioCertsConfig.volumeMountSettings.secretName }}
+        - name: pagopa-proxy-nginx-tls-pagopa-ca-certs-config
           secret:
-            secretName: {{ .Values.pagopaProxy.configs.pagopaProxyNginxTls.ioCertsProdConfig.volumeMountSettings.secretName }}
-        - name: pagopa-proxy-nginx-tls-pagopa-ca-certs-test-config
-          secret:
-            secretName: {{ .Values.pagopaProxy.configs.pagopaProxyNginxTls.pagopaCaCertsTestConfig.volumeMountSettings.secretName }}
-        - name: pagopa-proxy-nginx-tls-pagopa-ca-certs-prod-config
-          secret:
-            secretName: {{ .Values.pagopaProxy.configs.pagopaProxyNginxTls.pagopaCaCertsProdConfig.volumeMountSettings.secretName }}
+            secretName: {{ .Values.pagopaProxy.configs.pagopaProxyNginxTls.pagopaCaCertsConfig.volumeMountSettings.secretName }}
