@@ -113,10 +113,10 @@ pagopaProxy:
       nginx.ingress.kubernetes.io/auth-tls-secret: "default/pagopa-proxy-pagopa-ca-test-certs"
     path: /
     hosts:
-      - pagopa.dev.io.italia.it
+      - pagopa-test.dev.io.italia.it
     tls:
       - hosts:
-          - pagopa.dev.io.italia.it
+          - pagopa-test.dev.io.italia.it
         secretName: pagopa-proxy-io-test-certs
 
   resources: {}
