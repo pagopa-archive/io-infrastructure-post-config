@@ -4,17 +4,17 @@ apiVersion: v1
 
 kind: Service
 metadata:
-  name: {{ template "io-onboarding-pa.fullname" . }}-backend-http
+  name: {{ template "io-onboarding-pa-api.fullname" . }}-http
   labels:
-    app: {{ template "io-onboarding-pa.name" . }}
-    chart: {{ template "io-onboarding-pa.chart" . }}
+    app: {{ template "io-onboarding-pa-api.name" . }}
+    chart: {{ template "io-onboarding-pa-api.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  type: {{ .Values.ioOnboardingPa.services.backendHttp.type }}
+  type: {{ .Values.ioOnboardingPaApi.services.backendHttp.type }}
   ports:
-    - name: onboard-pa-http
-{{ toYaml .Values.ioOnboardingPa.services.backendHttp | indent 6 }}
+    - name: onboard-pa-api
+{{ toYaml .Values.ioOnboardingPaApi.services.backendHttp | indent 6 }}
   selector:
-    app: {{ template "io-onboarding-pa.name" . }}
+    app: {{ template "io-onboarding-pa-api.name" . }}
     release: {{ .Release.Name }}

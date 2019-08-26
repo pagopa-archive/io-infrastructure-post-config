@@ -1,26 +1,26 @@
 ---
 
-{{- if .Values.ioOnboardingPa.ingress.enabled -}}
-{{- $fullName := include "io-onboarding-pa.fullname" . -}}
-{{- $servicePort := .Values.ioOnboardingPa.services.backendHttp.port -}}
-{{- $ingressPath := .Values.ioOnboardingPa.ingress.path -}}
+{{- if .Values.ioOnboardingPaApi.ingress.enabled -}}
+{{- $fullName := include "io-onboarding-pa-api.fullname" . -}}
+{{- $servicePort := .Values.ioOnboardingPaApi.services.backendHttp.port -}}
+{{- $ingressPath := .Values.ioOnboardingPaApi.ingress.path -}}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
   name: {{ $fullName }}
   labels:
-    app: {{ template "io-onboarding-pa.name" . }}
-    chart: {{ template "io-onboarding-pa.chart" . }}
+    app: {{ template "io-onboarding-pa-api.name" . }}
+    chart: {{ template "io-onboarding-pa-api.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
-{{- with .Values.ioOnboardingPa.ingress.annotations }}
+{{- with .Values.ioOnboardingPaApi.ingress.annotations }}
   annotations:
 {{ toYaml . | indent 4 }}
 {{- end }}
 spec:
-{{- if .Values.ioOnboardingPa.ingress.tls }}
+{{- if .Values.ioOnboardingPaApi.ingress.tls }}
   tls:
-  {{- range .Values.ioOnboardingPa.ingress.tls }}
+  {{- range .Values.ioOnboardingPaApi.ingress.tls }}
     - hosts:
       {{- range .hosts }}
         - {{ . }}
@@ -29,13 +29,13 @@ spec:
   {{- end }}
 {{- end }}
   rules:
-  {{- range .Values.ioOnboardingPa.ingress.hosts }}
+  {{- range .Values.ioOnboardingPaApi.ingress.hosts }}
     - host: {{ . }}
       http:
         paths:
           - path: {{ $ingressPath }}
             backend:
-              serviceName: {{ $fullName }}-backend-http
+              serviceName: {{ $fullName }}-http
               servicePort: {{ $servicePort }}
   {{- end }}
 {{- end }}

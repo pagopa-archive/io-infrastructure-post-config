@@ -3,104 +3,133 @@
 apiVersion: apps/v1beta2
 kind: Deployment
 metadata:
-  name: {{ template "io-onboarding-pa.fullname" . }}
+  name: {{ template "io-onboarding-pa-api.fullname" . }}
   labels:
-    app: {{ template "io-onboarding-pa.name" . }}
-    chart: {{ template "io-onboarding-pa.chart" . }}
+    app: {{ template "io-onboarding-pa-api.name" . }}
+    chart: {{ template "io-onboarding-pa-api.chart" . }}
     release: {{ .Release.Name }}
     heritage: {{ .Release.Service }}
 spec:
-  replicas: {{ .Values.ioOnboardingPa.replicaCount }}
+  replicas: {{ .Values.ioOnboardingPaApi.replicaCount }}
   selector:
     matchLabels:
-      app: {{ template "io-onboarding-pa.name" . }}
+      app: {{ template "io-onboarding-pa-api.name" . }}
       release: {{ .Release.Name }}
   template:
     metadata:
       labels:
-        app: {{ template "io-onboarding-pa.name" . }}
+        app: {{ template "io-onboarding-pa-api.name" . }}
         release: {{ .Release.Name }}
     spec:
       hostAliases:
       - ip: "127.0.0.1"
         hostnames:
-        - "{{ .Values.ioOnboardingPa.backend.host }}"
-        - "{{ .Values.ioOnboardingPa.postgresDb.host }}"
+        - "{{ .Values.ioOnboardingPaApi.backend.host }}"
+        - "{{ .Values.ioOnboardingPaApi.postgresDb.host }}"
       containers:
         # Backend
         - name: backend
-          image: "{{ .Values.global.registry }}{{ .Values.ioOnboardingPa.images.backend.repository }}:{{ tpl .Values.ioOnboardingPa.images.backend.tag . }}"
-          imagePullPolicy: {{ .Values.ioOnboardingPa.images.pullPolicy }}
+          image: "{{ .Values.global.registry }}{{ .Values.ioOnboardingPaApi.images.backend.repository }}:{{ tpl .Values.ioOnboardingPaApi.images.backend.tag . }}"
+          imagePullPolicy: {{ .Values.ioOnboardingPaApi.images.pullPolicy }}
           env:
             - name: PGHOST
-              value: "{{ .Values.ioOnboardingPa.postgresDb.host }}"
+              value: "{{ .Values.ioOnboardingPaApi.postgresDb.host }}"
             - name: PGDATABASE
-              value: "{{ .Values.ioOnboardingPa.postgresDb.database }}"
+              value: "{{ .Values.ioOnboardingPaApi.postgresDb.database }}"
             - name: PGUSER
-              value: "{{ .Values.ioOnboardingPa.postgresDb.user }}"
+              value: "{{ .Values.ioOnboardingPaApi.postgresDb.user }}"
             - name: PGPASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: io-onboarding-pa
+                  name: io-onboarding-pa-api
                   key: pgpassword
+            - name: CLIENT_SPID_ERROR_REDIRECTION_URL
+              value: "{{ .Values.ioOnboardingPaApi.env.client_spid_error_redirection_url }}"
+            - name: CLIENT_SPID_SUCCESS_REDIRECTION_URL
+              value: "{{ .Values.ioOnboardingPaApi.env.client_spid_success_redirection_url }}"
+            - name: SAML_ACCEPTED_CLOCK_SKEW_MS
+              value: "{{ .Values.ioOnboardingPaApi.env.saml_accepted_clock_skew_ms }}"
+            - name: SAML_ATTRIBUTE_CONSUMING_SERVICE_INDEX
+              value: "{{ .Values.ioOnboardingPaApi.env.saml_attribute_consuming_service_index }}"
+            - name: SAML_CALLBACK_URL
+              value: "{{ .Values.ioOnboardingPaApi.env.saml_callback_url }}"
+            - name: SAML_ISSUER
+              value: "{{ .Values.ioOnboardingPaApi.env.saml_issuer }}"
+            - name: SPID_AUTOLOGIN
+              value: "{{ .Values.ioOnboardingPaApi.env.spid_autologin }}"
+            - name: SPID_TESTENV_URL
+              value: "{{ .Values.ioOnboardingPaApi.env.spid_testenv_url }}"
+            - name: IDP_METADATA_URL
+              value: "{{ .Values.ioOnboardingPaApi.env.idp_metadata_url }}"
+            - name: SAML_KEY_PATH
+              value: "{{ .Values.ioOnboardingPaApi.env.saml_key_path }}"
+            - name: SAML_CERT_PATH
+              value: "{{ .Values.ioOnboardingPaApi.env.saml_cert_path }}"
           ports:
-            - name: onboard-pa-http
-              containerPort: {{ .Values.ioOnboardingPa.services.backendHttp.port }}
-              protocol: {{ .Values.ioOnboardingPa.services.backendHttp.protocol }}
+            - name: onboard-pa-api
+              containerPort: {{ .Values.ioOnboardingPaApi.services.backendHttp.port }}
+              protocol: {{ .Values.ioOnboardingPaApi.services.backendHttp.protocol }}
+          volumeMounts:
+            - name: spid-cert
+              mountPath: {{ .Values.ioOnboardingPaApi.spidCert.mountPath }}
+              readOnly: {{ .Values.ioOnboardingPaApi.spidCert.readOnly }}
           resources:
-{{ toYaml .Values.ioOnboardingPa.resources.backend | indent 12 }}
-    {{- with .Values.ioOnboardingPa.nodeSelector }}
+{{ toYaml .Values.ioOnboardingPaApi.resources.backend | indent 12 }}
+    {{- with .Values.ioOnboardingPaApi.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}
     {{- end }}
-    {{- with .Values.ioOnboardingPa.affinity }}
+    {{- with .Values.ioOnboardingPaApi.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}
     {{- end }}
-    {{- with .Values.ioOnboardingPa.tolerations }}
+    {{- with .Values.ioOnboardingPaApi.tolerations }}
       tolerations:
 {{ toYaml . | indent 8 }}
     {{- end }}
 
         # Postgres DB
         - name: postgres-db
-          image: "{{ .Values.global.registry }}{{ .Values.ioOnboardingPa.images.postgresDb.repository }}:{{ tpl .Values.ioOnboardingPa.images.postgresDb.tag . }}"
-          imagePullPolicy: {{ .Values.ioOnboardingPa.images.postgresDb.pullPolicy }}
+          image: "{{ .Values.global.registry }}{{ .Values.ioOnboardingPaApi.images.postgresDb.repository }}:{{ tpl .Values.ioOnboardingPaApi.images.postgresDb.tag . }}"
+          imagePullPolicy: {{ .Values.ioOnboardingPaApi.images.postgresDb.pullPolicy }}
           env:
             - name: POSTGRES_DB
-              value: "io-onboarding-pa"
+              value: "io-onboarding-pa-api"
             - name: POSTGRES_USER
-              value: "{{ .Values.ioOnboardingPa.postgresDb.user }}"
+              value: "{{ .Values.ioOnboardingPaApi.postgresDb.user }}"
             - name: POSTGRES_PASSWORD
               valueFrom:
                 secretKeyRef:
-                  name: io-onboarding-pa
+                  name: io-onboarding-pa-api
                   key: pgpassword
             - name: PGDATA
               value: /var/lib/postgresql/data/pgdata
           ports:
             - name: postgres-db
-              containerPort: {{ .Values.ioOnboardingPa.services.postgresDb.port }}
-              protocol: {{ .Values.ioOnboardingPa.services.postgresDb.protocol }}
+              containerPort: {{ .Values.ioOnboardingPaApi.services.postgresDb.port }}
+              protocol: {{ .Values.ioOnboardingPaApi.services.postgresDb.protocol }}
           volumeMounts:
             - mountPath: "/var/lib/postgresql/data"
-              name: io-onboarding-pa-postgres
+              name: io-onboarding-pa-api-postgres
           resources:
-{{ toYaml .Values.ioOnboardingPa.resources.postgresDb | indent 12 }}
-    {{- with .Values.ioOnboardingPa.nodeSelector }}
+{{ toYaml .Values.ioOnboardingPaApi.resources.postgresDb | indent 12 }}
+    {{- with .Values.ioOnboardingPaApi.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}
     {{- end }}
-    {{- with .Values.ioOnboardingPa.affinity }}
+    {{- with .Values.ioOnboardingPaApi.affinity }}
       affinity:
 {{ toYaml . | indent 8 }}
     {{- end }}
-    {{- with .Values.ioOnboardingPa.tolerations }}
+    {{- with .Values.ioOnboardingPaApi.tolerations }}
       tolerations:
 {{ toYaml . | indent 8 }}
     {{- end }}
 
       volumes:
-        - name: io-onboarding-pa-postgres
+        - name: io-onboarding-pa-api-postgres
           persistentVolumeClaim:
-            claimName: io-onboarding-pa-postgres
+            claimName: io-onboarding-pa-api-postgres
+        - name: spid-cert
+          secret:
+            secretName: {{ .Values.ioOnboardingPaApi.spidCert.secretName }}
