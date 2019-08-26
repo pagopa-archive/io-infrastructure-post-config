@@ -95,7 +95,7 @@ Then, apply the file running `kubectl apply -f dns-custom.yaml`
 * **Generate test certificates (optional):** while PagoPA will always use official CA released certificates, during the initial test phase it may be beneficial for the counterpart to generate temporary, self-signed certificates. This can be easily achieved using *openssl*:
 
 ```shell
-openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=pagopa.dev.io.italia.it/O=pagopa.dev.io.italia.it"
+openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=pagopa-test.dev.io.italia.it/O=IO"
 ```
 
 The example creates a public certificate called *tls.crt* and a private key named *tls.key*. *CN* and *O* values should be adjusted to the specific hostname in use.
@@ -151,4 +151,35 @@ The file above contains a list of exemplar variables and values placeholders. Pl
 
 ```shell
 helm install -n pagopa-proxy pagopa-proxy
+```
+
+## Test the egress connection to PagoPA
+
+To test the egress connection to PagoPA (thus verifying to be able to authenticate), the quickest thing to do is manually enter in the pagopa-proxy container and curl PagoPA.
+It doesn't matter what SOAP is sent to PagoPA: if the authentication is successful PagoPA will return an application error. Otherwise, the authentication will fail and a 403 will be returned instead.
+
+Following is an example of a test
+
+```
+$ kubectl get pods
+NAME                                   READY   STATUS    RESTARTS   AGE
+app-backend-848f4f4b8c-27vlr           1/1     Running   0          5h41m
+app-backend-848f4f4b8c-2gbfg           1/1     Running   0          5h41m
+app-backend-848f4f4b8c-7m7ts           1/1     Running   0          5h41m
+app-backend-848f4f4b8c-gbzp9           1/1     Running   0          5h41m
+app-backend-848f4f4b8c-v2zlj           1/1     Running   0          5h41m
+app-backend-848f4f4b8c-wx4c2           1/1     Running   0          5h41m
+app-backend-848f4f4b8c-x2xkz           1/1     Running   0          5h41m
+app-backend-848f4f4b8c-zmblh           1/1     Running   0          5h41m
+io-onboarding-pa-api-7d65ffc6c-xlp2j   2/2     Running   1          28m
+pagopa-proxy-85cc4ddfc6-bdtgb          2/2     Running   0          17m
+spid-testenv-bcc9b4fd5-2gtfb           1/1     Running   0          5h40m
+
+$ kubectl exec -it pagopa-proxy-85cc4ddfc6-bdtgb -c pagopa-proxy /bin/sh
+/usr/src/app #
+
+/usr/src/app # apk update && apk add curl
+
+# Following command will either return an application error (SUCCESS!) or an authentication error
+/usr/src/app # curl -d '<run>...</run>' http://test.pagopa/openspcoop2/proxy/PA/
 ```
