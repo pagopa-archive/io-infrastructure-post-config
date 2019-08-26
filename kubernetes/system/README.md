@@ -16,8 +16,6 @@ All commands below should be run from the system folder.
 
 Make sure to
 
-* Set the correct public static IP (previously allocated with Terraform) in *istio-custom.yaml*
-
 * Set the correct public static IP (previously allocated with Terraform) in *nginx-ingress-custom.yaml*
 
 If any change is needed, please commit it to the repository.
@@ -52,35 +50,6 @@ helm install \
 
 ```shell
 kubectl apply -f cert-manager-issuers.yaml
-```
-
-## Deploy Istio
-
-Istio is used for multiple purposes, primarily to establish encrypted tunnels with third party services.
-
-It's important that Istio gets installed as the first gateway component, so that the cluster outgoing traffic will be natted with the same IP of the Istio ingress gateway. This will make easier to establish peer-to-peer communications with third parties, where -usually- both a source and a destination IP are requested.
-
-To install Istio
-
-```shell
-# Add locally the Istio helm repository and download the repo index
-helm repo add istio.io https://storage.googleapis.com/istio-release/releases/1.2.2/charts/
-helm repo update
-
-# Create Istio namespace
-kubectl create namespace istio-system
-
-# Install Istio CRDs
-helm install istio.io/istio-init --name istio-init --namespace istio-system
-
-# Wait until Istio CRDs are equal to 23.
-kubectl get crds | grep 'istio.io' | wc -l
-
-# Install Istio
-helm install istio.io/istio \
-  --name istio \
-  --namespace istio-system \
-  -f istio-custom.yaml
 ```
 
 ## Deploy the Nginx ingress controller
