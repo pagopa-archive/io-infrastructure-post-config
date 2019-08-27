@@ -62,6 +62,7 @@ For security reasons, the PagoPA hostnames used in this chart (i.e. *gad.test.pa
 
 # How to install and configure PagoPA proxy
 
+## DNS
 To establish a successful communication with PagoPA the following actions need to be performed:
 
 * **Communicate your public IP to PagoPA:** PagoPA filters ingress communications using IP filters (and so should do IO). The first load balancer external, public IP configured in the cluster -presumably the one associated with the NGINX ingress- is also set by default as the cluster egress IP. Make sure to communicate the IP to PagoPA, so it will be added to their whitelist.
@@ -91,6 +92,15 @@ The following example sets a custom DNS entry that binds *gad.test.pagopa.gov.it
 Then, apply the file running `kubectl apply -f dns-custom.yaml`
 
 >**WARNING**: Do not publicly commit the PagoPA IP addresses to do not compromise the security policies of PagoPA.
+
+
+Now force CoreDNS to reload the ConfigMap. The kubectl delete pod command isn't destructive and doesn't cause down time. The kube-dns pods are deleted, and the Kubernetes Scheduler then recreates them.
+
+```shell
+kubectl delete pod --namespace kube-system -l k8s-app=kube-dns
+```
+
+## SSL Certificates
 
 * **Generate test certificates (optional):** while PagoPA will always use official CA released certificates, during the initial test phase it may be beneficial for the counterpart to generate temporary, self-signed certificates. This can be easily achieved using *openssl*:
 
