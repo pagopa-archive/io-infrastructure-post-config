@@ -2,7 +2,7 @@
 
 apiVersion: v1
 
-name: io-onboarding-pa
+name: io-onboarding-pa-api
 description: IO Backoffice application for Public Administrations onboarding.
 
 version: 0.1.1
