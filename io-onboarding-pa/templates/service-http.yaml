@@ -1,0 +1,20 @@
+---
+
+apiVersion: v1
+
+kind: Service
+metadata:
+  name: {{ template "io-onboarding-pa.fullname" . }}-http
+  labels:
+    app: {{ template "io-onboarding-pa.name" . }}
+    chart: {{ template "io-onboarding-pa.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.ioOnboardingPa.services.http.type }}
+  ports:
+    - name: http
+{{ toYaml .Values.ioOnboardingPa.services.http | indent 6 }}
+  selector:
+    app: {{ template "io-onboarding-pa.name" . }}
+    release: {{ .Release.Name }}

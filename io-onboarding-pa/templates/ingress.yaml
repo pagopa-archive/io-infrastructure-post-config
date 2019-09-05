@@ -1,0 +1,41 @@
+---
+
+{{- if .Values.ioOnboardingPa.ingress.enabled -}}
+{{- $fullName := include "io-onboarding-pa.fullname" . -}}
+{{- $servicePort := .Values.ioOnboardingPa.services.http.port -}}
+{{- $ingressPath := .Values.ioOnboardingPa.ingress.path -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    app: {{ template "io-onboarding-pa.name" . }}
+    chart: {{ template "io-onboarding-pa.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{- with .Values.ioOnboardingPa.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+{{- if .Values.ioOnboardingPa.ingress.tls }}
+  tls:
+  {{- range .Values.ioOnboardingPa.ingress.tls }}
+    - hosts:
+      {{- range .hosts }}
+        - {{ . }}
+      {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
+{{- end }}
+  rules:
+  {{- range .Values.ioOnboardingPa.ingress.hosts }}
+    - host: {{ . }}
+      http:
+        paths:
+          - path: {{ $ingressPath }}
+            backend:
+              serviceName: {{ $fullName }}-http
+              servicePort: {{ $servicePort }}
+  {{- end }}
+{{- end }}

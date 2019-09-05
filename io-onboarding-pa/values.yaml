@@ -1,0 +1,55 @@
+---
+
+global:
+  registry: ''
+
+ioOnboardingPa:
+
+  replicaCount: 1
+
+  images:
+    frontend:
+      repository: teamdigitale/io-onboarding-pa
+      tag: latest
+      pullPolicy: Always
+
+  env:
+    io_onboarding_pa_api_host: http://io-onboarding-pa-api-http
+    io_onboarding_pa_api_port: 3000
+
+  services:
+    http:
+      port: 80
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      ingress.kubernetes.io/ssl-redirect: "true"
+      kubernetes.io/tls-acme: "true"
+      certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
+    path: /
+    hosts:
+      - pa-onboarding.dev.io.italia.it
+    tls:
+      - hosts:
+          - pa-onboarding.dev.io.italia.it
+        secretName: io-onboarding-pa-dev-tls
+
+  resources:
+    # For each of the following objects, set limits
+    # removing the curly brackets after resources and
+    # uncommenting the lines below.
+    # limits:
+    #  cpu: 100m
+    #  memory: 128Mi
+    # requests:
+    #  cpu: 100m
+    #  memory: 128Mi
+    frontend: {}
+
+  nodeSelector: {}
+
+  tolerations: {}
+
+  affinity: {}

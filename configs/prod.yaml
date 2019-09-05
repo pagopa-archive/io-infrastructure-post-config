@@ -37,9 +37,9 @@ spidTestenv:
 
 # spid-testenv - end
 
-# io-onboarding-pa - start
+# io-onboarding-pa-api - start
 
-ioOnboardingPa:
+ioOnboardingPaApi:
   ingress:
     hosts:
       - api.pa-onboarding.io.italia.it
@@ -47,4 +47,16 @@ ioOnboardingPa:
       - hosts:
           - api.pa-onboarding.io.italia.it
 
-# io-onboarding-pa - end
+# io-onboarding-pa-api - end
+
+# io-onboarding-pa-api - start
+
+ioOnboardingPa:
+  ingress:
+    hosts:
+      - pa-onboarding.io.italia.it
+    tls:
+      - hosts:
+          - pa-onboarding.io.italia.it
+
+# io-onboarding-pa-api - end

@@ -1,0 +1,51 @@
+---
+
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "io-onboarding-pa.fullname" . }}
+  labels:
+    app: {{ template "io-onboarding-pa.name" . }}
+    chart: {{ template "io-onboarding-pa.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.ioOnboardingPa.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "io-onboarding-pa.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "io-onboarding-pa.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        # Frontend
+        - name: frontend
+          image: "{{ .Values.global.registry }}{{ .Values.ioOnboardingPa.images.frontend.repository }}:{{ tpl .Values.ioOnboardingPa.images.frontend.tag . }}"
+          imagePullPolicy: {{ .Values.ioOnboardingPa.images.pullPolicy }}
+          env:
+            - name: IO_ONBOARDING_PA_API_HOST
+              value: "{{ .Values.ioOnboardingPa.env.io_onboarding_pa_api_host }}"
+            - name: IO_ONBOARDING_PA_API_PORT
+              value: "{{ .Values.ioOnboardingPa.env.io_onboarding_pa_api_port }}"
+          ports:
+            - name: http
+              containerPort: {{ .Values.ioOnboardingPa.services.http.port }}
+              protocol: {{ .Values.ioOnboardingPa.services.http.protocol }}
+          resources:
+{{ toYaml .Values.ioOnboardingPa.resources.frontend | indent 12 }}
+    {{- with .Values.ioOnboardingPa.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.ioOnboardingPa.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.ioOnboardingPa.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
