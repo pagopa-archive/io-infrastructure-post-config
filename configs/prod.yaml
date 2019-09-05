@@ -3,7 +3,7 @@
 global:
   registry: ''
 
-# app-backend - start
+# APP-BACKEND - start
 
 appBackend:
   env:
@@ -16,47 +16,55 @@ appBackend:
 
   ingress:
     hosts:
+      - app-backend.prod.io.italia.it
       - app-backend.io.italia.it
     tls:
       - hosts:
+          - app-backend.prod.io.italia.it
           - app-backend.io.italia.it
         secretName: app-backend-tls
 
-# app-backend - end
+# APP-BACKEND - end
 
-# spid-testenv - start
+# SPID-TESTENV - start
 
 spidTestenv:
   ingress:
     hosts:
+      - spid-testenv.prod.io.italia.it
       - spid-testenv.io.italia.it
     tls:
       - hosts:
+          - spid-testenv.prod.io.italia.it
           - spid-testenv.io.italia.it
         secretName: spid-testenv-tls
 
-# spid-testenv - end
+# SPIND-TESTENV - end
 
-# io-onboarding-pa-api - start
+# IO-ONBOARDING-PA-API - start
 
 ioOnboardingPaApi:
   ingress:
     hosts:
+      - api.pa-onboarding.prod.io.italia.it
       - api.pa-onboarding.io.italia.it
     tls:
       - hosts:
+          - api.pa-onboarding.prodio.italia.it
           - api.pa-onboarding.io.italia.it
 
-# io-onboarding-pa-api - end
+# IO-ONBOARDING-PA-API - end
 
-# io-onboarding-pa-api - start
+# IO-ONBOARDING-PA - start
 
 ioOnboardingPa:
   ingress:
     hosts:
+      - pa-onboarding.prod.io.italia.it
       - pa-onboarding.io.italia.it
     tls:
       - hosts:
+          - pa-onboarding.prod.io.italia.it
           - pa-onboarding.io.italia.it
 
-# io-onboarding-pa-api - end
+# IO-ONBOARDING-PA - end
