@@ -19,6 +19,16 @@ The repository is a collection of scripts to run in the IO infrastructure to con
 
 To configure the IO infrastructure you should have full access to it with administrative privileges.
 
+## Folder structure
+
+Each folder generally represents an IO service, except a few of them that instead realize specific functions:
+
+* **system** - contains system services (look at the *deploy system services* paragraph below)
+
+* **storage** - contains the PersistentVolumeClaim configurations (PVCs) used by some of the applications to work. Inside, each PVC configuration is named as the chart that makes use of it
+
+* **configs** - helm configuration value files that extend the basic helm charts default values. Each file generally represents a deployment environment (i.e. dev, prod, ...)
+
 # Deploy Kubernetes Resources
 
 This readme explains how deploy and manage Kubernetes resources for the IO project.
@@ -31,11 +41,11 @@ This readme explains how deploy and manage Kubernetes resources for the IO proje
 4. Install and setup the [helm client](https://helm.sh/docs/using_helm/#installing-helm)
 5. Make sure you're on the correct azure subscription (`az account set -s YOUR-SUBSCRIPTION`)
 
->NOTE: You can either ask your subscription id to your administrator or view it online from the portal.azure.com page
+>NOTE: You can either ask your subscription id to your administrator or view it online from [portal.azure.com](portal.azure.com).
 
 6. Download the K8S cluster configuration (`az aks get-credentials -n AKS_CLUSTER_NAME -g RESOURCE_GROUP`)
 
->NOTE: You can either ask your resource group and AKS cluster name to your administrator or view it online from the portal.azure.com page
+>NOTE: You can either ask your resource group and AKS cluster name to your administrator or view it online from [portal.azure.com](portal.azure.com).
 
 7. You may have more than one cluster configuration on your computer.
 
@@ -48,16 +58,6 @@ This readme explains how deploy and manage Kubernetes resources for the IO proje
 
 >NOTE: Your helm client may not be in sync with the Tiller version installed on the server. In these case you can run *helm init --upgrade* to synchronize the two versions.
 
-## Folder structure
-
-The `kubernetes` folder contains a list of sub-folders, each generally representing an IO service.
-
-Few of these folders instead realize specific functions:
-
-* **system** - contains system services (look at the *deploy system services* paragraph below)
-
-* **configs** - helm configuration value files that extend the basic helm charts default values. Each file generally represents a deployment environment (i.e. dev, prod, ...)
-
 ## Deploy system services
 
 Following, are the instructions to deploy the system services needed by all IO applications to work.
@@ -66,34 +66,34 @@ Following, are the instructions to deploy the system services needed by all IO a
 
 ### Storage and data persistence
 
-By default Azure uses two storage classes to provide data persistence functionalities: *default* and *managed-premium*. These are automatically configured by Azure at setup time. By default, both classes do not support dynamic storage dimensions upgrades and their reclaim policy is set to Delete, which would cause data to be deleted when a persistent volume (so a chart) gets deleted.
+By default Azure uses two *storage classes* to provide data persistence functionalities: *default* and *managed-premium*. These are automatically configured by Azure at setup time. By default, both classes do not support dynamic storage resizes, and their reclaim policy is set to *Delete*, which would cause data to be deleted when a persistent volume claim gets deleted.
 
-#### Deploy Azure Disk custom Storage Class
+#### Deploy the Azure Disk custom Storage Class
 
-The Azure disk custom storage class implements all the features provided by both default storage classes, but also enable dynamic storage upgrades and set the reclaim policy to Retain.
+The *Azure disk custom storage class* implements all the features provided by both default storage classes, while also enabling dynamic storage resizes and setting the reclaim policy to *Retain*, thus preserving managed disks, even when a PVC gets deleted.
 
-To deploy the custom storage class, from the *system* folder run:
+To deploy the custom storage class, run:
 
 ```shell
-kubectl apply -f azure-disk-sc-custom.yaml
+kubectl apply -f system/azure-disk-sc-custom.yaml
 ```
 
->Note: The limitation of the disk type storage classes is that disks can be attached only to one pod at the time.
+>Note: The limitation of disk type storage classes is that disks can be attached only to one pod at the time.
 
 #### Deploy Azure Files Storage Class and related role-based access control (RBAC)
 
-The Azure Files storage class is an additional storage class. It's slower than the Azure disk storage classes mentioned above but it can be sometimes useful when multiple containers need to access the same disk and share files.
+The Azure Files storage class is slower than the Azure disk storage classes mentioned above but it can be sometimes useful when multiple containers need to access the same disk and share files.
 Since some services may take advantage of it, it's strongly suggested to load its drivers in the cluster.
 
-To load the Azure file storage class, from the *system* folder run:
+To load the Azure file storage class, run:
 
 ```shell
-kubectl apply -f azure-file-sc.yaml
+kubectl apply -f system/azure-file-sc.yaml
 ```
 
 In order to be able to use the Azure files storage class, both a ClusterRole and a ClusterRoleBinding need to be created.
 
-To do so, from the *system* folder run::
+To do so, from the *system* folder run:
 
 ```shell
 kubectl apply -f azure-pvc-roles.yaml
@@ -101,8 +101,8 @@ kubectl apply -f azure-pvc-roles.yaml
 
 ## Deploy Azure Storage PersistentVolumeClaim (PVCs) for IO services
 
-PVCs for IO services are defined outside the helm-charts to avoid their deletion, while a chart gets removed for maintenance.
-PVCs definitions can be found in the *storage* folder, located in the *kubernetes* directory. Each PVC should be created before installing the corresponding chart.
+PVCs for IO services are defined outside the helm-charts to avoid their deletion, while a chart gets removed for maintenance, or simply for human errors.
+PVC definitions can be found in the *storage* folder. Each PVC is prefixed with the name of the chart that makes use of it, and should be created before installing the corresponding chart.
 
 To create a PVC for a service, run
 
@@ -118,7 +118,7 @@ kubectl apply -f storage
 
 ### Install tiller: the server-side component of helm
 
-Tiller is required to install the *cert-manager*, the *nginx-ingress* and all other IO applications.
+Tiller (the server-side component of helm) is required to install any other component.
 
 To install *tiller* run:
 
@@ -132,7 +132,7 @@ helm init --service-account tiller --upgrade
 
 ### Deploy the cert-manager
 
-The cert-manager is a Kubernetes component that takes care of adding and renewing through the integration with some providers (i.e. letsencrypt) certificates for any virtual host specified in the ingress.
+The cert-manager is a Kubernetes component that takes care of adding and renewing TLS certificates for any virtual host specified in the ingress, through the integration with some providers (i.e. letsencrypt) .
 
 > **Warning:** If the first command generates a validation error, you should update the *kubectl* client.
 
@@ -140,27 +140,30 @@ To deploy the cert-manager follow the helm installation instructions from the [o
 
 ### Apply cert-manager issuers
 
-To integrate the cert-manager with the letsencrypt certificate issuer, from the *system* folder run:
+To integrate the cert-manager with the *letsencrypt certificate issuer*, run:
 
 ```shell
-kubectl apply -f cert-manager-issuers.yaml
+kubectl apply -f system/cert-manager-issuers.yaml
 ```
 
 ### Deploy the ingress controller
 
-Before proceeding make sure you have created a static, public IP address and that the same address is reflected in the `nginx-ingress-custom.yaml` file.
+The nginx ingress controller works as a reverse proxy, routing requests from the Internet to the IO applications living in the cluster. All applications DNS names are resolved to a single, public static IP address, that must be pre-provisioned on Azure.
+Before proceeding, make sure you have allocated the public, static IP address using Terraform, and that the same address is reflected in the `nginx-ingress-custom.yaml` file.
 
-Create a name space for the `nxignx-ingress`:
+Then, create a name space for the `nxignx-ingress`:
 
 ```shell
 kubectl create namespace ingress
 ```
 
+And install the ingress itself:
+
 ```shell
 helm install stable/nginx-ingress \
     --namespace ingress \
     -n io-ingress \
-    -f nginx-ingress-custom.yaml \
+    -f system/nginx-ingress-custom.yaml \
     --set controller.replicaCount=2 \
     --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux \
     --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux
@@ -168,16 +171,16 @@ helm install stable/nginx-ingress \
 
 ## Deploy generic resources and services
 
-Generally, IO services are packaged using helm charts.
+IO services are packaged using helm charts.
 Each helm chart configures one or more of the following services:
 
-* Deployment
+* Deployments
 
 * Services and load balancers
 
 * Nginx ingress rules (if any)
 
-* Certificates (if any)
+* Certificate requests (if any)
 
 To list existing deployments
 
@@ -193,16 +196,22 @@ helm install [-f configs/CONFIG_NAME.yaml] [-n DEPLOYMENT_NAME] {NAME_OF_YOUR_CH
 
 Where:
 
-* CONFIG_NAME is optional and it's one of the configurations in the configs folder
+* CONFIG_NAME is optional and it's one of the configurations in the configs folder. By default, the *development* environment configuration is applied by default. So, for *dev* environments no configurations should be specified.
 
-* DEPLOYMENT_NAME is optional. It represents an arbitrary name to give to the deployment (names can then be listed with `helm ls`, and used to reference charts in other helm commands)
+* DEPLOYMENT_NAME is optional, but strongly suggested. It represents an arbitrary name to give to the deployment (names can then be listed with `helm ls`, and used to reference charts in other helm commands)
 
-* NAME_OF_YOUR_CHART is mandatory and corresponds to one of the folders (each one is a different chart) in the kubernetes directory, besides the special folders reported in the folder structure paragraph, above
+* NAME_OF_YOUR_CHART is mandatory and corresponds to one of the folder names, each one representing the chart.
 
 For example
 
 ```shell
-helm install -f configs/dev.yaml -n ckan ckan
+helm install -n app-backend app-backend
+```
+
+Or, to deploy the same app-backend app, applying the production configuration
+
+```shell
+helm install -f configs/prod.yaml -n app-backend app-backend
 ```
 
 To remove an existing IO service
