@@ -46,17 +46,11 @@ spec:
             - name: "API_URL"
               value: "{{ .Values.appBackend.env.api_url }}"
             - name: "API_KEY"
-              valueFrom:
-                secretKeyRef:
-                  name: app-backend-secrets
-                  key: api_key
+              value: "k8s-app-backend-secrets-api-key@azurekeyvault"
             - name: "AUTHENTICATION_BASE_PATH"
               value: "{{ .Values.appBackend.env.authentication_base_path }}"
             - name: "AZURE_NH_ENDPOINT"
-              valueFrom:
-                secretKeyRef:
-                  name: app-backend-secrets
-                  key: azure_nh_endpoint
+              value: "k8s-app-backend-secrets-ng-endpoint@azurekeyvault"
             - name: "AZURE_NH_HUB_NAME"
               value: "{{ .Values.appBackend.env.azure_nh_hub_name }}"
             - name: "NODE_ENV"
@@ -68,19 +62,13 @@ spec:
             - name: "PAGOPA_API_URL_TEST"
               value: "{{ .Values.appBackend.env.pagopa_api_url_test }}"
             - name: "PRE_SHARED_KEY"
-              valueFrom:
-                secretKeyRef:
-                  name: app-backend-secrets
-                  key: pre_shared_key
+              value: "k8s-app-backend-secrets-pre-shared-key@azurekeyvault"
             - name: "REDIS_URL"
               value: "{{ .Values.appBackend.env.redis_url }}"
             - name: "REDIS_PORT"
               value: "{{ .Values.appBackend.env.redis_port }}"
             - name: "REDIS_PASSWORD"
-              valueFrom:
-                secretKeyRef:
-                  name: app-backend-secrets
-                  key: redis_password
+              value: "k8s-app-backend-secrets-redis-password@azurekeyvault"
             - name: "SAML_CALLBACK_URL"
               value: "{{ .Values.appBackend.env.saml_callback_url }}"
             - name: "SAML_ISSUER"
