@@ -1,0 +1,89 @@
+---
+
+global:
+  registry: ''
+
+developerPortalBackend:
+
+  replicaCount: 1
+
+  images:
+    backend:
+      repository: teamdigitale/developer-portal-backend
+      tag: latest
+      pullPolicy: Always
+    postgresDb:
+      repository: postgres
+      tag: 12-alpine
+      pullPolicy: IfNotPresent
+
+  backend:
+    host: backend
+
+  postgresDb:
+    host: postgres-db
+    database: developer-portal-backend
+    user: developer-portal-backend
+
+  env:
+    api_base_path: /api/v1
+    client_spid_error_redirection_url: /error.html
+    client_spid_login_redirection_url: /login
+    client_spid_success_redirection_url: /profile.html?token={token}
+    saml_accepted_clock_skew_ms: "-1"
+    saml_attribute_consuming_service_index: "2"
+    saml_callback_url: "http://io-onboarding-backend:3000/assertion-consumer-service"
+    saml_issuer: "https://spid.agid.gov.it/cd"
+    spid_autologin: ""
+    spid_testenv_url: "http://spid-testenv:8088"
+    idp_metadata_url: "https://registry.spid.gov.it/metadata/idp/spid-entities-idps.xml"
+    saml_cert_path: "/usr/src/app/certs/cert.pem"
+    saml_key_path: "/usr/src/app/certs/key.pem"
+    token_duration_in_seconds: "3600" #1 hour
+
+  spidCert:
+    secretName: "spid-cert"
+    mountPath: "/usr/src/app/certs"
+    readOnly: true
+
+  services:
+    backendHttp:
+      port: 3000
+    postgresDb:
+      port: 5432
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      ingress.kubernetes.io/ssl-redirect: "true"
+      kubernetes.io/tls-acme: "true"
+      certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
+    path: /
+    hosts:
+      - api.pa-onboarding.dev.io.italia.it
+    tls:
+      - hosts:
+          - api.pa-onboarding.dev.io.italia.it
+        secretName: developer-portal-backend-dev-tls
+
+  resources:
+    # For each of the following objects, set limits
+    # removing the curly brackets after resources and
+    # uncommenting the lines below.
+    # limits:
+    #  cpu: 100m
+    #  memory: 128Mi
+    # requests:
+    #  cpu: 100m
+    #  memory: 128Mi
+    ckan: {}
+    solr: {}
+    redis: {}
+    postgresDb: {}
+
+  nodeSelector: {}
+
+  tolerations: {}
+
+  affinity: {}
