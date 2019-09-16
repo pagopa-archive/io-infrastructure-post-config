@@ -9,48 +9,41 @@ developerPortalBackend:
 
   images:
     backend:
-      repository: teamdigitale/developer-portal-backend
-      tag: latest
-      pullPolicy: Always
-    postgresDb:
-      repository: postgres
-      tag: 12-alpine
+      repository: docker.io/teamdigitale/io-developer-portal-backend
+      tag: v0.2.3
       pullPolicy: IfNotPresent
 
-  backend:
-    host: backend
-
-  postgresDb:
-    host: postgres-db
-    database: developer-portal-backend
-    user: developer-portal-backend
-
   env:
-    api_base_path: /api/v1
-    client_spid_error_redirection_url: /error.html
-    client_spid_login_redirection_url: /login
-    client_spid_success_redirection_url: /profile.html?token={token}
-    saml_accepted_clock_skew_ms: "-1"
-    saml_attribute_consuming_service_index: "2"
-    saml_callback_url: "http://io-onboarding-backend:3000/assertion-consumer-service"
-    saml_issuer: "https://spid.agid.gov.it/cd"
-    spid_autologin: ""
-    spid_testenv_url: "http://spid-testenv:8088"
-    idp_metadata_url: "https://registry.spid.gov.it/metadata/idp/spid-entities-idps.xml"
-    saml_cert_path: "/usr/src/app/certs/cert.pem"
-    saml_key_path: "/usr/src/app/certs/key.pem"
-    token_duration_in_seconds: "3600" #1 hour
-
-  spidCert:
-    secretName: "spid-cert"
-    mountPath: "/usr/src/app/certs"
-    readOnly: true
+    admin_api_url: https://io-dev-apim-01.portal.azure-api.net
+    admin_api_key: b45ed6f0d68c44b588d3f1d28a4c134c
+    apim_product_name: starter
+    apim_user_groups: apilimitedmessagewrite,apiinforead,apimessageread,apilimitedprofileread
+    appinsights_instrumentationkey: f50807b4-8638-4940-908f-771504a2e815
+    arm_apim: io-dev-apim-01
+    arm_resource_group: io-dev-rg
+    arm_subscription_id: ec285037-c673-4f58-b594-d7c480da4e8b
+    arm_tenant_id: cb44f084-ca44-4753-8973-dd3045d9ad2b
+    use_service_principal: true
+    service_principal_client_id: ecd91abb-8c85-4910-860a-849969c48973
+    service_principal_secret: p[@zh_g85qpla$}?gbh!
+    client_name: developer-portal-prod
+    client_id: 21c10408-0c32-4853-ae19-69e2f7f76481
+    client_secret: ZlCLlZQM04951r)V5M[tCALX
+    cookie_iv: p<VZfSdK3Sya
+    cookie_key: O06ae[563Xuo!_@R8BBi1$2$nPd$r!FF
+    log_level: debug
+    policy_name: b2c_1_signupin
+    reset_password_policy_name: b2c_1_passwordreset
+    post_login_url: https://developer.dev.io.italia.it
+    post_logout_url: https://developer.dev.io.italia.it
+    reply_url: https://developer.dev.io.italia.it
+    tenant_id: cb44f084-ca44-4753-8973-dd3045d9ad2b
+    website_node_default_version: 6.11.2
+    website_npm_default_version: 6.1.0
 
   services:
     backendHttp:
       port: 3000
-    postgresDb:
-      port: 5432
 
   ingress:
     enabled: true
@@ -61,10 +54,10 @@ developerPortalBackend:
       certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
     path: /
     hosts:
-      - api.pa-onboarding.dev.io.italia.it
+      - backend.developer-portal.dev.io.italia.it
     tls:
       - hosts:
-          - api.pa-onboarding.dev.io.italia.it
+          - backend.developer-portal.dev.io.italia.it
         secretName: developer-portal-backend-dev-tls
 
   resources:

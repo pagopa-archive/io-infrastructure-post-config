@@ -21,64 +21,67 @@ spec:
         app: {{ template "developer-portal-backend.name" . }}
         release: {{ .Release.Name }}
     spec:
-      hostAliases:
-      - ip: "127.0.0.1"
-        hostnames:
-        - "{{ .Values.developerPortalBackend.backend.host }}"
-        - "{{ .Values.developerPortalBackend.postgresDb.host }}"
       containers:
-        # Backend
-        - name: backend
+        - name: developer-portal-backend
           image: "{{ .Values.global.registry }}{{ .Values.developerPortalBackend.images.backend.repository }}:{{ tpl .Values.developerPortalBackend.images.backend.tag . }}"
           imagePullPolicy: {{ .Values.developerPortalBackend.images.pullPolicy }}
           env:
-            - name: PGHOST
-              value: "{{ .Values.developerPortalBackend.postgresDb.host }}"
-            - name: PGDATABASE
-              value: "{{ .Values.developerPortalBackend.postgresDb.database }}"
-            - name: PGUSER
-              value: "{{ .Values.developerPortalBackend.postgresDb.user }}"
-            - name: PGPASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: developer-portal-backend
-                  key: pgpassword
-            - name: API_BASE_PATH
-              value: "{{ .Values.developerPortalBackend.env.api_base_path }}"
-            - name: CLIENT_SPID_ERROR_REDIRECTION_URL
-              value: "{{ .Values.developerPortalBackend.env.client_spid_error_redirection_url }}"
-            - name: CLIENT_SPID_LOGIN_REDIRECTION_URL
-              value: "{{ .Values.developerPortalBackend.env.client_spid_login_redirection_url }}"
-            - name: CLIENT_SPID_SUCCESS_REDIRECTION_URL
-              value: "{{ .Values.developerPortalBackend.env.client_spid_success_redirection_url }}"
-            - name: SAML_ACCEPTED_CLOCK_SKEW_MS
-              value: "{{ .Values.developerPortalBackend.env.saml_accepted_clock_skew_ms }}"
-            - name: SAML_ATTRIBUTE_CONSUMING_SERVICE_INDEX
-              value: "{{ .Values.developerPortalBackend.env.saml_attribute_consuming_service_index }}"
-            - name: SAML_CALLBACK_URL
-              value: "{{ .Values.developerPortalBackend.env.saml_callback_url }}"
-            - name: SAML_ISSUER
-              value: "{{ .Values.developerPortalBackend.env.saml_issuer }}"
-            - name: SPID_AUTOLOGIN
-              value: "{{ .Values.developerPortalBackend.env.spid_autologin }}"
-            - name: SPID_TESTENV_URL
-              value: "{{ .Values.developerPortalBackend.env.spid_testenv_url }}"
-            - name: IDP_METADATA_URL
-              value: "{{ .Values.developerPortalBackend.env.idp_metadata_url }}"
-            - name: SAML_KEY_PATH
-              value: "{{ .Values.developerPortalBackend.env.saml_key_path }}"
-            - name: SAML_CERT_PATH
-              value: "{{ .Values.developerPortalBackend.env.saml_cert_path }}"
-            - name: TOKEN_DURATION_IN_SECONDS
-              value: "{{ .Values.developerPortalBackend.env.token_duration_in_seconds }}"
+            - name: ADMIN_API_URL
+              value: "{{ .Values.developerPortalBackend.env.admin_apim_url }}"
+            - name: ADMIN_API_KEY
+              value: "{{ .Values.developerPortalBackend.env.admin_api_key }}"
+            - name: APIM_PRODUCT_NAME
+              value: "{{ .Values.developerPortalBackend.env.apim_product_name }}"
+            - name: APIM_USER_GROUPS
+              value: "{{ .Values.developerPortalBackend.env.apim_user_groups }}"
+            - name: APPINSIGHTS_INSTRUMENTATIONKEY
+              value: "{{ .Values.developerPortalBackend.env.appinsights_instrumentationkey }}"
+            - name: ARM_APIM
+              value: "{{ .Values.developerPortalBackend.env.arm_apim }}"
+            - name: ARM_RESOURCE_GROUP
+              value: "{{ .Values.developerPortalBackend.env.arm_resource_group }}"
+            - name: ARM_SUBSCRIPTION_ID
+              value: "{{ .Values.developerPortalBackend.env.arm_subscription_id }}"
+            - name: ARM_TENANT_ID
+              value: "{{ .Values.developerPortalBackend.env.arm_tenant_id }}"
+            - name: USE_SERVICE_PRINCIPAL
+              value: "{{ .Values.developerPortalBackend.env.use_service_principal }}"
+            - name: SERVICE_PRINCIPAL_CLIENT_ID
+              value: "{{ .Values.developerPortalBackend.env.service_principal_client_id }}"
+            - name: SERVICE_PRINCIPAL_SECRET
+              value: "{{ .Values.developerPortalBackend.env.service_principal_client_secret }}"
+            - name: CLIENT_NAME
+              value: "{{ .Values.developerPortalBackend.env.client_name }}"
+            - name: CLIENT_ID
+              value: "{{ .Values.developerPortalBackend.env.client_id }}"
+            - name: CLIENT_SECRET
+              value: "{{ .Values.developerPortalBackend.env.client_secret }}"
+            - name: COOKIE_IV
+              value: "{{ .Values.developerPortalBackend.env.cookie_iv }}"
+            - name: COOKIE_KEY
+              value: "{{ .Values.developerPortalBackend.env.cookie_key }}"
+            - name: LOG_LEVEL
+              value: "{{ .Values.developerPortalBackend.env.log_level }}"
+            - name: POLICY_NAME
+              value: "{{ .Values.developerPortalBackend.env.policy_name }}"
+            - name: RESET_PASSWORD_POLICY_NAME
+              value: "{{ .Values.developerPortalBackend.env.reset_password_policy_name }}"
+            - name: POST_LOGIN_URL
+              value: "{{ .Values.developerPortalBackend.env.post_login_url }}"
+            - name: POST_LOGOUT_URL
+              value: "{{ .Values.developerPortalBackend.env.post_logout_url }}"
+            - name: REPLY_URL
+              value: "{{ .Values.developerPortalBackend.env.reply_url }}"
+            - name: TENANT_ID
+              value: "{{ .Values.developerPortalBackend.env.tenant_id }}"
+            - name: WEBSITE_NODE_DEFAULT_VERSION
+              value: "{{ .Values.developerPortalBackend.env.website_node_default_version }}"
+            - name: WEBSITE_NPM_DEFAULT_VERSION
+              value: "{{ .Values.developerPortalBackend.env.website_npm_default_version }}"
           ports:
-            - name: onboard-pa-api
+            - name: backend-http
               containerPort: {{ .Values.developerPortalBackend.services.backendHttp.port }}
               protocol: {{ .Values.developerPortalBackend.services.backendHttp.protocol }}
-          volumeMounts:
-            - name: spid-cert
-              mountPath: {{ .Values.developerPortalBackend.spidCert.mountPath }}
-              readOnly: {{ .Values.developerPortalBackend.spidCert.readOnly }}
           resources:
 {{ toYaml .Values.developerPortalBackend.resources.backend | indent 12 }}
     {{- with .Values.developerPortalBackend.nodeSelector }}
@@ -93,49 +96,3 @@ spec:
       tolerations:
 {{ toYaml . | indent 8 }}
     {{- end }}
-
-        # Postgres DB
-        - name: postgres-db
-          image: "{{ .Values.global.registry }}{{ .Values.developerPortalBackend.images.postgresDb.repository }}:{{ tpl .Values.developerPortalBackend.images.postgresDb.tag . }}"
-          imagePullPolicy: {{ .Values.developerPortalBackend.images.postgresDb.pullPolicy }}
-          env:
-            - name: POSTGRES_DB
-              value: "developer-portal-backend"
-            - name: POSTGRES_USER
-              value: "{{ .Values.developerPortalBackend.postgresDb.user }}"
-            - name: POSTGRES_PASSWORD
-              valueFrom:
-                secretKeyRef:
-                  name: developer-portal-backend
-                  key: pgpassword
-            - name: PGDATA
-              value: /var/lib/postgresql/data/pgdata
-          ports:
-            - name: postgres-db
-              containerPort: {{ .Values.developerPortalBackend.services.postgresDb.port }}
-              protocol: {{ .Values.developerPortalBackend.services.postgresDb.protocol }}
-          volumeMounts:
-            - mountPath: "/var/lib/postgresql/data"
-              name: developer-portal-backend-postgres
-          resources:
-{{ toYaml .Values.developerPortalBackend.resources.postgresDb | indent 12 }}
-    {{- with .Values.developerPortalBackend.nodeSelector }}
-      nodeSelector:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.developerPortalBackend.affinity }}
-      affinity:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.developerPortalBackend.tolerations }}
-      tolerations:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-
-      volumes:
-        - name: developer-portal-backend-postgres
-          persistentVolumeClaim:
-            claimName: developer-portal-backend-postgres
-        - name: spid-cert
-          secret:
-            secretName: {{ .Values.developerPortalBackend.spidCert.secretName }}

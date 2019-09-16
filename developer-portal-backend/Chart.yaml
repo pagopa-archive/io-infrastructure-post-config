@@ -6,4 +6,4 @@ name: developer-portal-backend
 description: IO Developer Portal backend.
 
 version: 0.1.0
-appVersion: "0.1.0"
+appVersion: "0.2.3"
