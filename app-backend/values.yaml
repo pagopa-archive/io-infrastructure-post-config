@@ -25,7 +25,7 @@ appBackend:
     allow_notify_ip_source_range: "0.0.0.0/0"
     allow_pagopa_ip_source_range: "0.0.0.0/0"
     api_base_path: "/api/v1"
-    api_url: "https://io-dev-apim-01.azure-api.net/api/v1"
+    api_url: "https://io-dev-fn-2-app.azurewebsites.net/api/v1"
     authentication_base_path: ""
     azure_nh_hub_name: "io-dev-nh-nh-01"
     node_env: "development"
