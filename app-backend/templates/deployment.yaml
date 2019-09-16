@@ -50,7 +50,7 @@ spec:
             - name: "AUTHENTICATION_BASE_PATH"
               value: "{{ .Values.appBackend.env.authentication_base_path }}"
             - name: "AZURE_NH_ENDPOINT"
-              value: "k8s-app-backend-secrets-ng-endpoint@azurekeyvault"
+              value: "k8s-app-backend-secrets-nh-endpoint@azurekeyvault"
             - name: "AZURE_NH_HUB_NAME"
               value: "{{ .Values.appBackend.env.azure_nh_hub_name }}"
             - name: "NODE_ENV"
