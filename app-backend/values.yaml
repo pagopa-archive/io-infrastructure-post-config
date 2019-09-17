@@ -17,8 +17,8 @@ appBackend:
 
   images:
     appBackend:
-      repository: teamdigitale/italia-backend
-      tag: v1.8.0
+      repository: docker.io/teamdigitale/italia-backend
+      tag: v1.9.0
       pullPolicy: IfNotPresent
 
   env:
@@ -74,6 +74,8 @@ appBackend:
       - hosts:
           - app-backend.dev.io.italia.it
         secretName: app-backend-tls
+
+  azureKeyvaultName: io-dev-keyvault
 
   resources: {}
     # To set limits remove the curly brackets

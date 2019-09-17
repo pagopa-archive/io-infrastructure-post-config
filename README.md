@@ -130,6 +130,44 @@ kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"templat
 helm init --service-account tiller --upgrade
 ```
 
+### Enable synchronization of Azure Keyvault secrets with Kubernetes secrets
+
+It's strongly recommended to make Kubernetes retrieve secrets from the Azure Keyvault, instead of manually creating and editing secrets directly in Kubernetes. This approach is safer and allows an easier maintenance of the Kubernetes cluster.
+
+The secrets synchronization and container injection is realized using [this component](https://github.com/SparebankenVest/azure-key-vault-to-kubernetes).
+
+Add the *spv-charts* repo and update the repo index:
+
+```shell
+helm repo add spv-charts http://charts.spvapi.no
+helm repo update
+```
+
+Installation:
+
+```shell
+helm install spv-charts/azure-key-vault-env-injector \
+    -n key-vault-env-injector \
+    --set installCrd=false
+
+helm install spv-charts/azure-key-vault-controller \
+    -n key-vault-controller
+```
+
+Enable the automatic env variables injection for all containers in the default namespace:
+
+```shell
+kubectl apply -f system/azure-key-vault.yaml
+```
+
+Each chart already contains an *azure-key-vault-secrets.yaml* file that creates
+
+* A Kubernetes empty secret
+
+* AzureKeyVaultSecret objects that trigger the pull of the secrets from the Azure Keyvault, synchronize the value with the local Kubernetes secret, and inject them as environment variables in the chart containers as needed
+
+* Moreover, environment variables are imported in the *deployment.yaml* files with the value format `name-of-the-variable@azurekeyvault`
+
 ### Deploy the cert-manager
 
 The cert-manager is a Kubernetes component that takes care of adding and renewing TLS certificates for any virtual host specified in the ingress, through the integration with some providers (i.e. letsencrypt) .
