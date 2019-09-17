@@ -17,11 +17,11 @@ pagopaProxy:
 
   images:
     pagopaProxy:
-      repository: teamdigitale/italia-pagopa-proxy
+      repository: docker.io/teamdigitale/italia-pagopa-proxy
       tag: v0.10.0
       pullPolicy: IfNotPresent
     pagopaProxyNginxTls:
-      repository: nginx
+      repository: docker.io/nginx
       tag: 1.17.3-alpine
       pullPolicy: IfNotPresent
 
@@ -32,7 +32,9 @@ pagopaProxy:
       pagopaproxy_port: "8080"
       pagopa_nginx_tls_host: "http://test.pagopa"
       pagopa_nginx_tls_port: "80"
-      pagopa_host_header: "nodopa.sia.eu"
+      pagopa_ws_uri: "/openspcoop2/proxy/PA/PROXYPagamentiTelematiciPspNodo"
+      # pagopa_host_header: "nodopa.sia.eu"
+      pagopa_host_header: "test.pagopa"
       pagopa_timeout_msec: "500000"
       redis_db_url: "io-dev-redis-cache-01.redis.cache.windows.net"
       redis_db_port: "6380"
@@ -41,6 +43,18 @@ pagopaProxy:
       nginx_port: "80"
       server_name: "test.pagopa"
       pagopa_host: "https://gad.test.pagopa.gov.it/"
+
+  secrets:
+    azureKeyvaultName: io-dev-keyvault
+    kubernetesSecretName: pagopa-proxy-prod-secrets
+    azureSecretNamePrefix: k8s-pagopa-proxy-prod-secrets
+    azureSecretNameSuffixes:
+      - pagopa-password
+      - pagopa-id-psp
+      - pagopa-id-int-psp
+      - pagopa-id-canale
+      - pagopa-id-canale-pagamento
+      - redis-db-password
 
   services:
     pagopaProxy:

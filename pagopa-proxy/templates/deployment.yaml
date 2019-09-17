@@ -55,46 +55,28 @@ spec:
               value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopa_nginx_tls_host }}"
             - name: "PAGOPA_PORT"
               value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopa_nginx_tls_port }}"
+            - name: "PAGOPA_WS_URI"
+              value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopa_ws_uri }}"
             - name: "PAGOPA_HOST_HEADER"
               value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopa_host_header }}"
-            - name: "PAGOPA_PASSWORD"
-              valueFrom:
-                secretKeyRef:
-                  name: pagopa-proxy
-                  key: pagopa_password
-            - name: "PAGOPA_ID_PSP"
-              valueFrom:
-                secretKeyRef:
-                  name: pagopa-proxy
-                  key: id_psp
-            - name: "PAGOPA_ID_INT_PSP"
-              valueFrom:
-                secretKeyRef:
-                  name: pagopa-proxy
-                  key: id_intermediario_psp
-            - name: "PAGOPA_ID_CANALE"
-              valueFrom:
-                secretKeyRef:
-                  name: pagopa-proxy
-                  key: id_canale
-            - name: "PAGOPA_ID_CANALE_PAGAMENTO"
-              valueFrom:
-                secretKeyRef:
-                  name: pagopa-proxy
-                  key: id_canale_pagamento
             - name: "PAGOPA_TIMEOUT_MSEC"
               value: "{{ .Values.pagopaProxy.env.pagopaProxy.pagopa_timeout_msec }}"
             - name: "REDIS_DB_URL"
               value: "{{ .Values.pagopaProxy.env.pagopaProxy.redis_db_url }}"
             - name: "REDIS_DB_PORT"
               value: "{{ .Values.pagopaProxy.env.pagopaProxy.redis_db_port }}"
-            - name: "REDIS_DB_PASSWORD"
-              valueFrom:
-                secretKeyRef:
-                  name: pagopa-proxy
-                  key: redis_password
             - name: "REDIS_USE_CLUSTER"
               value: "{{ .Values.pagopaProxy.env.pagopaProxy.redis_use_cluster }}"
+
+            # Secret names and values is automatically composed from the values file
+            # using the format azureSecretNamePrefix-azureSecretNameSuffix
+            {{- $azureSecretNamePrefix := .Values.pagopaProxy.secrets.azureSecretNamePrefix -}}
+            {{- range .Values.pagopaProxy.secrets.azureSecretNameSuffixes }}
+            {{- $azureSecretNameSuffixesUpper := . | upper }}
+            - name: {{ regexReplaceAll "-" $azureSecretNameSuffixesUpper "_" }}
+              value: {{ $azureSecretNamePrefix }}-{{ . }}@azurekeyvault
+            {{- end }}
+
           {{- with .Values.pagopaProxy.livenessProbe.pagopaProxy }}
           livenessProbe:
             httpGet:
