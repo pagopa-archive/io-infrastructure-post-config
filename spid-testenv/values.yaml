@@ -81,37 +81,32 @@ spidTestenv:
       readOnly: true
 
     config: |
-      #
       # Identity provider configuration
-      #
+
       base_url: "https://spid-testenv.dev.io.italia.it"
 
       # To sign SAML messages
+
       key_file: "/app/conf/idp.key"
       cert_file: "/app/conf/idp.crt"
 
-      #
       # Service provider configuration
-      #
-      metadata:
-        local:
-          - "/app/conf/sp_metadata.xml"
-      # remote:
-      #  - url: "http://spid-sp/metadata
-      #  cert: "./conf/spid-sp.cert"
 
-      #
+      metadata:
+        remote:
+          - url: "https://api.pa-onboarding.dev.io.italia.it/metadata"
+          - url: "https://app-backend.dev.io.italia.it/metadata"
+
       # Web server configuration
-      #
+
       debug: true
 
       host: 0.0.0.0
       port: 8088
 
-      # HTTPS is handled by Kubernetes ingress
+      # HTTPS is hvandled by Kubernetes ingress
+
       https: false
-      # https_key_file: "/app/conf/https.key"
-      # https_cert_file: "/app/conf/https.crt"
 
       # Identity provider endpoints
       endpoints:
@@ -199,55 +194,3 @@ spidTestenv:
             "pwd": "test"
         }
       }
-
-    spMetadata: |
-      <?xml version="1.0" encoding="UTF-8"?>
-      <EntityDescriptor xmlns="urn:oasis:names:tc:SAML:2.0:metadata" xmlns:ds="http://www.w3.org/2000/09/xmldsig#" entityID="https://spid.agid.gov.it/cd" ID="https___spid_agid_gov_it_cd">
-         <Signature xmlns="http://www.w3.org/2000/09/xmldsig#">
-            <SignedInfo>
-               <CanonicalizationMethod Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
-               <SignatureMethod Algorithm="http://www.w3.org/2001/04/xmldsig-more#rsa-sha256" />
-               <Reference URI="#https___spid_agid_gov_it_cd">
-                  <Transforms>
-                     <Transform Algorithm="http://www.w3.org/2000/09/xmldsig#enveloped-signature" />
-                     <Transform Algorithm="http://www.w3.org/2001/10/xml-exc-c14n#" />
-                  </Transforms>
-                  <DigestMethod Algorithm="http://www.w3.org/2001/04/xmlenc#sha256" />
-                  <DigestValue>yhgeCGktZqkUkh5tssJlNuu7psAsW6gXLyTJrDL7Jek=</DigestValue>
-               </Reference>
-            </SignedInfo>
-            <SignatureValue>a1yTILVHdVznKCcUCq36u69HscI/3PjKorUtTwVd+auSW1t7Na4xXev2PlQcaV65Oxc4A9LqECTKzzWk0ryMZZajt4Wnt3CZNktlcjy4igtVnde/kE9nChAEfEmm3A5kw5RMaqJf811fgQB5EVy96xzWfSrGJgKvqeyM5hQEas+fqo8LLOfs42QinqQPkxF/JFPCFvG8C14KGCE/S10FTjlwz1MU+e021MZAoF05ZAV8WfelkPZTLFrLKUpPj1ZmqOaqlEJxOpz6dHUBH1mvMas+cScoTub1MZjyYt6Q4JIG4qrY/FkwAun7PEBX9gGvtVn6PJ4g9vxc83Jo3gE4ocnpae4j95P9pz0TnM/kBCZaljrbjxTywmo4NtfLZ1Vnv5mSvSeWCJ9ASkLbFM71e1RfUlhTB0OJGXLKBpn3U4m4yYOdoB95OYb+ovtQT+YfRel5N7rpaBbKH296NA0bMs3mVPjlqUE9NZs4wsCigyGb5Xl2kL61cJIw2T53m1Th9QLB2Si+gzAWP4U40ftP4G6AU77Qng3QJ4nU7NQndKpX5bJ/ah1yXLr0ThTxU97HA/hb+2+Qazej9h0MBSVkL/dF4PF0UhxWbfHwudNjJtovdSuQ5MsHaqzHJlWsVkPZQJBL0gciEzYezoZQYnou3GM7+Ot6z6EJL2f+lJdsxBo=</SignatureValue>
-            <KeyInfo>
-               <X509Data>
-                  <X509Certificate>MIIGAjCCA+oCCQD0YxiPzT7G6jANBgkqhkiG9w0BAQsFADCBwjELMAkGA1UEBhMC SVQxDTALBgNVBAgMBFJvbWUxDTALBgNVBAcMBFJvbWUxLjAsBgNVBAoMJVByZXNp ZGVuemEgZGVsIENvbnNpZ2xpbyBkZWkgTWluaXN0cmkxLDAqBgNVBAsMI1RlYW0g cGVyIGxhIFRyYXNmb3JtYXppb25lIERpZ2l0YWxlMRUwEwYDVQQDDAxpby5pdGFs aWEuaXQxIDAeBgkqhkiG9w0BCQEWEWluZm9AaW8uaXRhbGlhLml0MB4XDTE5MDcw NzA3MDQxM1oXDTIwMDcwNjA3MDQxM1owgcIxCzAJBgNVBAYTAklUMQ0wCwYDVQQI DARSb21lMQ0wCwYDVQQHDARSb21lMS4wLAYDVQQKDCVQcmVzaWRlbnphIGRlbCBD b25zaWdsaW8gZGVpIE1pbmlzdHJpMSwwKgYDVQQLDCNUZWFtIHBlciBsYSBUcmFz Zm9ybWF6aW9uZSBEaWdpdGFsZTEVMBMGA1UEAwwMaW8uaXRhbGlhLml0MSAwHgYJ KoZIhvcNAQkBFhFpbmZvQGlvLml0YWxpYS5pdDCCAiIwDQYJKoZIhvcNAQEBBQAD ggIPADCCAgoCggIBAL32kr5rcPulzYt2WR6DO6vH4SoRPGpXoOVkleHzo7eOhRgV rzEWIAHDQwdjznkEcVKadMizTVH5VRvBAzJQGmcYGdg8So8PjzlPSznFg2AYsrt+ e30vqh+H40nOzdoUPmOLTFRzr2syO/uVJim3Dei26HBMKB93U+OW4GmdraYwrH7h p7AUDLO0jIR9k0Fwxv1dS6r6xprrZS3wXUZRHFg+qiNbVCtE1zfEK831Vtk/zldK 34YueDTj5Vv0F6CREIrTTRfn8VFvj+TQt1NqBTkrIboTKVJmJ7kF2Gkfr3nLp7Cv GCP5EsN2cOCSyxOJuaF+CpIOcRcPh04g9bciaf6cL56kfp81wx2eOwztW1HiWXtF PX2r936LR+sYzjojEsSPBzYL7AuTXJrFkj0AwFEdv2Nb6ch3dMHZQQY4a5FK23f3 eBYtWn0+V4M0PnU2ttGjM+KpJC/xPCfmtqfhEwB6kBdznFsZZNjIEfslz8uE5vX8 ZX8xaxC/CzJyBFam0lykL4eXyHZon8CAkUdKRiF3Q80mpN2Eerzp3YzLpfUe1Bci RiR7Ao8lMEshKzlhAVRJYgi+GjuPKGA5y7qO484ajvnIN66lfKtfr02wBfp2AClu ZMb6nXQrZnkMcrTXwugNZfKcnh31zQZ5lSk3ygC1Emf+jm9e3IL/V4ZrpM0vAgMB AAEwDQYJKoZIhvcNAQELBQADggIBACnKgqBXlgWVFws1fBNz3YfjwUYUh5b7NpQ3 ZiEsnKUIMXKqkALj+aNkMidHFvu4QON1DwoGFsFGc3+4DyXpncv+Z00nyfw62Gxp BjroIewHI5KYniNqlA9Mp3XPk/aA2BxqMU+y/O5k7OXNftW1SJdwRlnDUwHFRFge 8b24L1KjEnTP+U+Je/8/vMmoKj2TBffLhSf48lUGhLS/kXfUsFHawSb7+/fCepZJ gW1TTkqqq9ULB59110e4dglN7JWiUbUheb3ARNwGYFNPKnK9abQ57KDe4ylGSmXf theS0E0a7KajuGTwiPeJN4YbtHbGyYSW6kacLNnNov3auUWMlX0AovznaxKDnV0v 66CnnL6MCy+0WwmZjNW/uBkQWYqzWduYToKS9SFNTyb3kP5rZjuLqqtKiejnvt+/ WR7R3EI1ng/gY25OGhctqDw0pVLs5y1Rpq1GESwgxOlhePR8yFZmbfmtUVWL1mKg 1R9Dz6+wMbTsBj3VltWkDEJhATK6kZZNBjv9bm6dzUY9Ra8cyoGEh+Qsfifc+Fi2 0s+yv1u7pUW2SdlZTN1XWaSpRuorI/dSSwYaOWZqaltElqi3rHMkO4NGwT28yu/O XD2PQmheQE4o6RZq5R54KfbTJW4KlksCjXjapJvGOhHgOfDwtwdnKRTnTpZmrc+n CriV18Af</X509Certificate>
-               </X509Data>
-            </KeyInfo>
-         </Signature>
-         <SPSSODescriptor protocolSupportEnumeration="urn:oasis:names:tc:SAML:2.0:protocol" AuthnRequestsSigned="true" WantAssertionsSigned="true">
-            <KeyDescriptor use="signing">
-               <ds:KeyInfo>
-                  <ds:X509Data>
-                     <ds:X509Certificate>MIIGAjCCA+oCCQD0YxiPzT7G6jANBgkqhkiG9w0BAQsFADCBwjELMAkGA1UEBhMC SVQxDTALBgNVBAgMBFJvbWUxDTALBgNVBAcMBFJvbWUxLjAsBgNVBAoMJVByZXNp ZGVuemEgZGVsIENvbnNpZ2xpbyBkZWkgTWluaXN0cmkxLDAqBgNVBAsMI1RlYW0g cGVyIGxhIFRyYXNmb3JtYXppb25lIERpZ2l0YWxlMRUwEwYDVQQDDAxpby5pdGFs aWEuaXQxIDAeBgkqhkiG9w0BCQEWEWluZm9AaW8uaXRhbGlhLml0MB4XDTE5MDcw NzA3MDQxM1oXDTIwMDcwNjA3MDQxM1owgcIxCzAJBgNVBAYTAklUMQ0wCwYDVQQI DARSb21lMQ0wCwYDVQQHDARSb21lMS4wLAYDVQQKDCVQcmVzaWRlbnphIGRlbCBD b25zaWdsaW8gZGVpIE1pbmlzdHJpMSwwKgYDVQQLDCNUZWFtIHBlciBsYSBUcmFz Zm9ybWF6aW9uZSBEaWdpdGFsZTEVMBMGA1UEAwwMaW8uaXRhbGlhLml0MSAwHgYJ KoZIhvcNAQkBFhFpbmZvQGlvLml0YWxpYS5pdDCCAiIwDQYJKoZIhvcNAQEBBQAD ggIPADCCAgoCggIBAL32kr5rcPulzYt2WR6DO6vH4SoRPGpXoOVkleHzo7eOhRgV rzEWIAHDQwdjznkEcVKadMizTVH5VRvBAzJQGmcYGdg8So8PjzlPSznFg2AYsrt+ e30vqh+H40nOzdoUPmOLTFRzr2syO/uVJim3Dei26HBMKB93U+OW4GmdraYwrH7h p7AUDLO0jIR9k0Fwxv1dS6r6xprrZS3wXUZRHFg+qiNbVCtE1zfEK831Vtk/zldK 34YueDTj5Vv0F6CREIrTTRfn8VFvj+TQt1NqBTkrIboTKVJmJ7kF2Gkfr3nLp7Cv GCP5EsN2cOCSyxOJuaF+CpIOcRcPh04g9bciaf6cL56kfp81wx2eOwztW1HiWXtF PX2r936LR+sYzjojEsSPBzYL7AuTXJrFkj0AwFEdv2Nb6ch3dMHZQQY4a5FK23f3 eBYtWn0+V4M0PnU2ttGjM+KpJC/xPCfmtqfhEwB6kBdznFsZZNjIEfslz8uE5vX8 ZX8xaxC/CzJyBFam0lykL4eXyHZon8CAkUdKRiF3Q80mpN2Eerzp3YzLpfUe1Bci RiR7Ao8lMEshKzlhAVRJYgi+GjuPKGA5y7qO484ajvnIN66lfKtfr02wBfp2AClu ZMb6nXQrZnkMcrTXwugNZfKcnh31zQZ5lSk3ygC1Emf+jm9e3IL/V4ZrpM0vAgMB AAEwDQYJKoZIhvcNAQELBQADggIBACnKgqBXlgWVFws1fBNz3YfjwUYUh5b7NpQ3 ZiEsnKUIMXKqkALj+aNkMidHFvu4QON1DwoGFsFGc3+4DyXpncv+Z00nyfw62Gxp BjroIewHI5KYniNqlA9Mp3XPk/aA2BxqMU+y/O5k7OXNftW1SJdwRlnDUwHFRFge 8b24L1KjEnTP+U+Je/8/vMmoKj2TBffLhSf48lUGhLS/kXfUsFHawSb7+/fCepZJ gW1TTkqqq9ULB59110e4dglN7JWiUbUheb3ARNwGYFNPKnK9abQ57KDe4ylGSmXf theS0E0a7KajuGTwiPeJN4YbtHbGyYSW6kacLNnNov3auUWMlX0AovznaxKDnV0v 66CnnL6MCy+0WwmZjNW/uBkQWYqzWduYToKS9SFNTyb3kP5rZjuLqqtKiejnvt+/ WR7R3EI1ng/gY25OGhctqDw0pVLs5y1Rpq1GESwgxOlhePR8yFZmbfmtUVWL1mKg 1R9Dz6+wMbTsBj3VltWkDEJhATK6kZZNBjv9bm6dzUY9Ra8cyoGEh+Qsfifc+Fi2 0s+yv1u7pUW2SdlZTN1XWaSpRuorI/dSSwYaOWZqaltElqi3rHMkO4NGwT28yu/O XD2PQmheQE4o6RZq5R54KfbTJW4KlksCjXjapJvGOhHgOfDwtwdnKRTnTpZmrc+n CriV18Af</ds:X509Certificate>
-                  </ds:X509Data>
-               </ds:KeyInfo>
-               <EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes256-cbc" />
-               <EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#aes128-cbc" />
-               <EncryptionMethod Algorithm="http://www.w3.org/2001/04/xmlenc#tripledes-cbc" />
-            </KeyDescriptor>
-            <NameIDFormat>urn:oasis:names:tc:SAML:2.0:nameid-format:transient</NameIDFormat>
-            <AssertionConsumerService index="0" isDefault="true" Binding="urn:oasis:names:tc:SAML:2.0:bindings:HTTP-POST" Location="https://app-backend.dev.io.italia.it/assertionConsumerService" />
-            <AttributeConsumingService index="0">
-               <ServiceName xml:lang="it">Required attributes</ServiceName>
-               <RequestedAttribute Name="fiscalNumber" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic" FriendlyName="Codice fiscale" />
-               <RequestedAttribute Name="name" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic" FriendlyName="Nome" />
-               <RequestedAttribute Name="familyName" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic" FriendlyName="Cognome" />
-               <RequestedAttribute Name="email" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic" FriendlyName="Email" />
-               <RequestedAttribute Name="mobilePhone" NameFormat="urn:oasis:names:tc:SAML:2.0:attrname-format:basic" FriendlyName="Numero di telefono" />
-            </AttributeConsumingService>
-         </SPSSODescriptor>
-         <Organization>
-            <OrganizationName xml:lang="it">Team per la Trasformazione Digitale - Presidenza Del Consiglio dei Ministri</OrganizationName>
-            <OrganizationDisplayName xml:lang="it">IO - l'app dei servizi pubblici BETA</OrganizationDisplayName>
-            <OrganizationURL xml:lang="it">https://io.italia.it</OrganizationURL>
-         </Organization>
-      </EntityDescriptor>
