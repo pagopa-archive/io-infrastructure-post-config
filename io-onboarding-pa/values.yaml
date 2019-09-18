@@ -14,8 +14,8 @@ ioOnboardingPa:
       pullPolicy: Always
 
   env:
-    io_onboarding_pa_api_host: http://io-onboarding-pa-api-http
-    io_onboarding_pa_api_port: 3000
+    io_onboarding_pa_api_host: https://api.pa-onboarding.dev.io.italia.it
+    io_onboarding_pa_api_port: 443
 
   services:
     http:
