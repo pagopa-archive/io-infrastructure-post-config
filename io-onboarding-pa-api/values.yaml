@@ -32,10 +32,10 @@ ioOnboardingPaApi:
     client_spid_success_redirection_url: https://pa-onboarding.dev.io.italia.it/dashboard
     saml_accepted_clock_skew_ms: "-1"
     saml_attribute_consuming_service_index: "2"
-    saml_callback_url: "https://api.pa-onboarding.dev.io.italia.it/dashboard/assertion-consumer-service"
+    saml_callback_url: "https://api.pa-onboarding.dev.io.italia.it/assertion-consumer-service"
     saml_issuer: "https://spid.agid.gov.it/cd"
     spid_autologin: ""
-    spid_testenv_url: "http://spid-testenv:8088"
+    spid_testenv_url: "https://spid-testenv.dev.io.italia.it"
     idp_metadata_url: "https://registry.spid.gov.it/metadata/idp/spid-entities-idps.xml"
     saml_cert_path: "/usr/src/app/certs/cert.pem"
     saml_key_path: "/usr/src/app/certs/key.pem"
@@ -77,9 +77,7 @@ ioOnboardingPaApi:
     # requests:
     #  cpu: 100m
     #  memory: 128Mi
-    ckan: {}
-    solr: {}
-    redis: {}
+    backend: {}
     postgresDb: {}
 
   nodeSelector: {}
