@@ -28,11 +28,11 @@ ioOnboardingPaApi:
   env:
     api_base_path: /api/v1
     client_spid_error_redirection_url: /error.html
-    client_spid_login_redirection_url: /login
-    client_spid_success_redirection_url: /profile.html?token={token}
+    client_spid_login_redirection_url: https://pa-onboarding.dev.io.italia.it
+    client_spid_success_redirection_url: https://pa-onboarding.dev.io.italia.it/dashboard
     saml_accepted_clock_skew_ms: "-1"
     saml_attribute_consuming_service_index: "2"
-    saml_callback_url: "http://io-onboarding-backend:3000/assertion-consumer-service"
+    saml_callback_url: "https://api.pa-onboarding.dev.io.italia.it/dashboard/assertion-consumer-service"
     saml_issuer: "https://spid.agid.gov.it/cd"
     spid_autologin: ""
     spid_testenv_url: "http://spid-testenv:8088"
