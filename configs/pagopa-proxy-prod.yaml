@@ -1,0 +1,43 @@
+---
+
+# The configuration extends the default values of the pagopa-proxy helm-chart.
+# It should be used to instatiate a production pagopa-proxy instance.
+# 
+# PRODUCTION PAGOPA-PROXY IN DEV ENVIRONMENT
+# This file should be the only one applied on the pagopa-proxy helm-chart, if deployed
+# in the dev environment: helm install -f configs/pagopa-proxy-prod.yaml -n pagopa-proxy pagopa-proxy
+# 
+# PRODUCTION PAGOPA-PROXY IN PROD ENVIRONMENT
+# This file should be applied together (and before) the config/prod.yaml file, if deployed
+# in the prod environment: helm install -f configs/pagopa-proxy-prod.yaml -f configs/prod.yaml -n pagopa-proxy pagopa-proxy
+
+# PAGOPA-PROXY - start
+
+pagopaProxy:
+  env:
+    pagopa_host: "https://gad.pagopa.gov.it/"
+
+  secrets:
+    kubernetesSecretName: pagopa-proxy-prod-secrets
+    azureSecretNamePrefix: k8s-pagopa-proxy-prod-secrets
+
+  configs:
+    pagopaProxyNginxTls:
+      pagopaCaCertsConfig:
+        volumeMountSettings:
+          secretName: pagopa-proxy-pagopa-ca-prod-certs
+      ioCertsConfig:
+        volumeMountSettings:
+          secretName: pagopa-proxy-io-prod-certs
+
+  ingress:
+    annotations:
+      nginx.ingress.kubernetes.io/auth-tls-secret: "default/pagopa-proxy-pagopa-ca-prod-certs"
+    hosts:
+      - pagopa-prod.dev.io.italia.it
+    tls:
+      - hosts:
+          - pagopa-prod.dev.io.italia.it
+        secretName: pagopa-proxy-io-prod-certs
+
+# PAGOPA-PROXY - end

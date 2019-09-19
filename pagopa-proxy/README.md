@@ -6,6 +6,30 @@ The [IO PagoPA Proxy](https://github.com/teamdigitale/io-pagopa-proxy) allows th
 
 * Provide TLS 1.2 authentication and encryption services for the communications with PagoPA
 
+## Deployment
+
+Each environment (i.e. test, prod) needs two versions of pagopa-proxy: one to communicate with the PagoPA test environment, one to communicate with the PagoPA production environment.
+
+Before installing each chart, the corresponding secrets must be created in the Azure Keyvault specified in the chart variables.
+
+The secret names are derived from the values specified in the chart variables, and are in the following format: *Values.pagopaProxy.secrets.azureSecretNamePrefix*-*Values.pagopaProxy.secrets.azureSecretNameSuffix*
+
+When installed, the chart also needs a specific name, depending on its function:
+
+* to reach PagoPA test environments: *pagopa-proxy-test*
+
+* to reach PagoPA production environments: *pagopa-proxy*
+
+These are the procedures to install the chart:
+
+* dev / pagopa-test: `helm install -n pagopa-proxy-test pagopa-proxy`
+
+* dev / pagopa-prod: `helm install -f configs/pagopa-proxy-prod.yaml -n pagopa-proxy pagopa-proxy`
+
+* prod / pagopa-test: `helm install -f configs/prod.yaml -n pagopa-proxy-test pagopa-proxy`
+
+* prod / pagopa-prod: `helm install -f configs/pagopa-proxy-prod.yaml -f configs/prod.yaml -n pagopa-proxy pagopa-proxy`
+
 ## Kubernetes package composition
 
 The PagoPA proxy application is distributed as a helm-chart, which installs a Kubernetes service to get calls from the other IO services, an ingress to expose its SOAP interface to PagoPA, and Kubernetes POD made of two containers:

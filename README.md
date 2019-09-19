@@ -258,6 +258,10 @@ To remove an existing IO service
 helm delete --purge [DEPLOYMENT_NAME]
 ```
 
+### The special case of pagopa-proxy
+
+*pagopa-proxy* needs to be deployed in a very specific way. For more info on its deployment, take a look at the [pagopa-proxy readme](pagopa-proxy/README.md).
+
 ## How to contribute
 
 Contributions are welcome. Feel free to open issues and submit [pull requests](./pulls) at any time, but please read [our handbook](https://github.com/teamdigitale/io-handbook) first.

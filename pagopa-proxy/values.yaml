@@ -26,28 +26,23 @@ pagopaProxy:
       pullPolicy: IfNotPresent
 
   env:
-    pagopaProxy:
-      winston_log_level: "debug"
-      pagopaproxy_host: "localhost"
-      pagopaproxy_port: "8080"
-      pagopa_nginx_tls_host: "http://test.pagopa"
-      pagopa_nginx_tls_port: "80"
-      pagopa_ws_uri: "/openspcoop2/proxy/PA/PROXYPagamentiTelematiciPspNodo"
-      # pagopa_host_header: "nodopa.sia.eu"
-      pagopa_host_header: "test.pagopa"
-      pagopa_timeout_msec: "500000"
-      redis_db_url: "io-dev-redis-cache-01.redis.cache.windows.net"
-      redis_db_port: "6380"
-      redis_use_cluster: true
-    pagopaProxyNginxTls:
-      nginx_port: "80"
-      server_name: "test.pagopa"
-      pagopa_host: "https://gad.test.pagopa.gov.it/"
+    winston_log_level: "debug"
+    pagopaproxy_host: "localhost"
+    pagopaproxy_port: "8080"
+    pagopa_ws_uri: "/openspcoop2/proxy/PA/PROXYPagamentiTelematiciPspNodo"
+    pagopa_timeout_msec: "500000"
+    redis_db_url: "io-dev-redis-cache-01.redis.cache.windows.net"
+    redis_db_port: "6380"
+    redis_use_cluster: true
+    pagopa_proxy_nginx_tls_server_name: "pagopa"
+    pagopa_host: "https://gad.test.pagopa.gov.it/"
 
   secrets:
     azureKeyvaultName: io-dev-keyvault
-    kubernetesSecretName: pagopa-proxy-prod-secrets
-    azureSecretNamePrefix: k8s-pagopa-proxy-prod-secrets
+    kubernetesIoCertSecretName: pagopa-proxy-test-io-certs
+    kubernetesPagopaCaChainCertsSecretName: pagopa-proxy-test-pagopa-ca-chain-certs
+    kubernetesSecretName: pagopa-proxy-test-secrets
+    azureSecretNamePrefix: k8s-pagopa-proxy-test-secrets
     azureSecretNameSuffixes:
       - pagopa-password
       - pagopa-id-psp
@@ -70,12 +65,11 @@ pagopaProxy:
     pagopaProxyNginxTls:
       nginxConfig:
         volumeMountSettings:
-          configmapName: pagopa-proxy-nginx-tls-configmap
           mountPath: "/etc/nginx/conf.d/tmp"
           readOnly: true
         data: |
           server {
-            listen ${NGINX_PORT};
+            listen 80;
 
             server_name ${SERVER_NAME};
 
@@ -94,12 +88,12 @@ pagopaProxy:
           }
       pagopaCaCertsConfig:
         volumeMountSettings:
-          secretName: pagopa-proxy-pagopa-ca-test-certs
+          secretName: pagopa-proxy-test-pagopa-ca-chain-certs
           mountPath: "/etc/nginx/pagopa_ca_certs"
           readOnly: true
       ioCertsConfig:
         volumeMountSettings:
-          secretName: pagopa-proxy-io-test-certs
+          secretName: pagopa-proxy-test-io-certs
           mountPath: "/etc/nginx/io_certs"
           readOnly: true
 
@@ -124,14 +118,14 @@ pagopaProxy:
       # Validate both the client certificate and the intermediate certificate
       nginx.ingress.kubernetes.io/auth-tls-verify-depth: "2"
       # The secret containing the trusted ca certificates
-      nginx.ingress.kubernetes.io/auth-tls-secret: "default/pagopa-proxy-pagopa-ca-test-certs"
+      nginx.ingress.kubernetes.io/auth-tls-secret: "default/pagopa-proxy-test-pagopa-ca-chain-certs"
     path: /
     hosts:
       - pagopa-test.dev.io.italia.it
     tls:
       - hosts:
           - pagopa-test.dev.io.italia.it
-        secretName: pagopa-proxy-io-test-certs
+        secretName: pagopa-proxy-test-io-certs
 
   resources: {}
     # To set limits remove the curly brackets
