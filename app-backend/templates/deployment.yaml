@@ -83,6 +83,16 @@ spec:
               value: "{{ .Values.appBackend.env.idp_metadata_url }}"
             - name: "IDP_METADATA_REFRESH_INTERVAL_SECONDS"
               value: "{{ .Values.appBackend.env.idp_metadata_refresh_interval_seconds }}"
+
+            # Secret names and values are automatically composed from the values file
+            # using the format azureSecretNamePrefix-azureSecretNameSuffix
+            {{- $azureSecretNamePrefix := .Values.appBackend.secrets.azureSecretNamePrefix -}}
+            {{- range .Values.appBackend.secrets.azureSecretNameSuffixes }}
+            {{- $azureSecretNameSuffixesUpper := . | upper }}
+            - name: {{ regexReplaceAll "-" $azureSecretNameSuffixesUpper "_" }}
+              value: {{ $azureSecretNamePrefix }}-{{ . }}@azurekeyvault
+            {{- end }}
+
           volumeMounts:
             - name: certs
               mountPath: {{ .Values.appBackend.spidCert.mountPath }}

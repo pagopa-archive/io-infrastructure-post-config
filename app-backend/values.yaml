@@ -42,6 +42,16 @@ appBackend:
     idp_metadata_url: "https://registry.spid.gov.it/metadata/idp/spid-entities-idps.xml"
     idp_metadata_refresh_interval_seconds: "864000" # 10 days
 
+  secrets:
+    azureKeyvaultName: io-dev-keyvault
+    kubernetesSecretName: app-backend-secrets
+    azureSecretNamePrefix: k8s-app-backend-secrets
+    azureSecretNameSuffixes:
+      - api-key
+      - nh-endpoint
+      - pre-shared-key
+      - redis-password
+
   spidCert:
     volumeName: "spid-cert"
     mountPath: "/usr/src/app/certs"

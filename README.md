@@ -258,6 +258,12 @@ To remove an existing IO service
 helm delete --purge [DEPLOYMENT_NAME]
 ```
 
+### Kubernetes secrets
+
+The majority of the charts need some secrets to be populated in the Azure Keyvault, before being deployed. These secrets need to have a specific name that matches what's defined in the chart. Refer to the chart value files and readmes to know what secrets need to be defined before installing the chart.
+
+Secrets usually are in the format: *k8s-chart_name-secret-secret_name*.
+
 ### The special case of pagopa-proxy
 
 *pagopa-proxy* needs to be deployed in a very specific way. For more info on its deployment, take a look at the [pagopa-proxy readme](pagopa-proxy/README.md).
