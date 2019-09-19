@@ -45,6 +45,8 @@ spec:
                   key: pgpassword
             - name: API_BASE_PATH
               value: "{{ .Values.ioOnboardingPaApi.env.api_base_path }}"
+            - name: CLIENT_DOMAIN
+              value: "{{ .Values.ioOnboardingPaApi.env.client_domain }}"
             - name: CLIENT_SPID_ERROR_REDIRECTION_URL
               value: "{{ .Values.ioOnboardingPaApi.env.client_spid_error_redirection_url }}"
             - name: CLIENT_SPID_LOGIN_REDIRECTION_URL

@@ -45,6 +45,7 @@ spidTestenv:
 
 ioOnboardingPaApi:
   env:
+    client_domain: https://pa-onboarding.io.italia.it:443
     client_spid_login_redirection_url: https://pa-onboarding.io.italia.it
     client_spid_success_redirection_url: https://pa-onboarding.io.italia.it/dashboard
     saml_callback_url: "https://api.pa-onboarding.io.italia.it/assertion-consumer-service"
