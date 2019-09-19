@@ -6,15 +6,39 @@ The [IO PagoPA Proxy](https://github.com/teamdigitale/io-pagopa-proxy) allows th
 
 * Provide TLS 1.2 authentication and encryption services for the communications with PagoPA
 
-## Deployment
+## Installation
 
-Each environment (i.e. test, prod) needs two versions of pagopa-proxy: one to communicate with the PagoPA test environment, one to communicate with the PagoPA production environment.
+*pagopa-proxy* is a quite articulated piece of software, which needs to be deployed in a very specific way.
 
-Before installing each chart, the corresponding secrets must be created in the Azure Keyvault specified in the chart variables.
+Each environment (i.e. dev, prod) needs two versions of pagopa-proxy: one to communicate with the PagoPA test environment; one to communicate with the PagoPA production environment.
 
-The secret names are derived from the values specified in the chart variables, and are in the following format: *Values.pagopaProxy.secrets.azureSecretNamePrefix*-*Values.pagopaProxy.secrets.azureSecretNameSuffix*
+### Installation: step-by-step
 
-When installed, the chart also needs a specific name, depending on its function:
+Following steps are needed, in order to deploy *pagopa-proxy*:
+
+* **Import IO TLS certificates in PEM format into the Azure Keyvault**, using the Azure GUI. The certificate and the key must be places one after the other, in PEM format in the same file. Refer to the overview section above for the name of the secret.
+
+The IO private/public certificates secret name is automatically derived from the chart, using  use the following format: *Values.pagopaProxy.secrets.azureSecretNamePrefix*-*pagopa-io-certs*
+
+* **Import the PagoPA CA chain certificate into the Azure Keyvault** as a unique Keyvault *secret* (not as a certificate!). The secret consists of a multi-line text, but it's saved in Vault as a one-line string. For this reason, it can be either:
+  
+  * input directly from the GUI, if correctly placed before in a text editor on a single line, and after adding `\n` at the end of each line.
+
+  * Imported using the *az CLI tool* with the following command:
+    ```shell
+    az keyvault secret set --vault-name YOUR_KEYVAULT_NAME --name AZURE_SECRET_NAME --file CA_CHAIN_FILE_NAME
+    ```
+    The commands automatically formats the file and stores it in the Azure Keyvault.
+
+The PagoPA CA chain certificate secret name is automatically derived from the chart, using  use the following format: * For : *Values.pagopaProxy.secrets.azureSecretNamePrefix*-*pagopa-ca-chain-certs*
+
+* **Create all other secrets**: read the overview paragraph above to know the secrets needed and their names. Then create them in the Azure Keyvault from the GUI.
+
+The other secret names are derived from the values specified in the chart variables, and are in the following format: *Values.pagopaProxy.secrets.azureSecretNamePrefix*-*Values.pagopaProxy.secrets.azureSecretNameSuffix*
+
+* **Install the chart**
+
+The chart needs a specific name, depending on its function:
 
 * to reach PagoPA test environments: *pagopa-proxy-test*
 
