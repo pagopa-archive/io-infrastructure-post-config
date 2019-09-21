@@ -9,11 +9,11 @@ ioOnboardingPaApi:
 
   images:
     backend:
-      repository: teamdigitale/io-onboarding-pa-api
+      repository: docker.io/teamdigitale/io-onboarding-pa-api
       tag: latest
       pullPolicy: Always
     postgresDb:
-      repository: postgres
+      repository: docker.io/teamdigitale/postgres
       tag: 12-alpine
       pullPolicy: IfNotPresent
 
@@ -42,8 +42,15 @@ ioOnboardingPaApi:
     saml_key_path: "/usr/src/app/certs/key.pem"
     token_duration_in_seconds: "3600" #1 hour
 
+  secrets:
+    azureKeyvaultName: io-dev-keyvault
+    kubernetesSpidCertsSecretName: io-onboarding-pa-api-spid-certs
+    kubernetesSecretName: io-onboarding-pa-api-secrets
+    azureSecretNamePrefix: k8s-io-onboarding-pa-api-secrets
+    azureSecretNameSuffixes:
+      - postgres-password
+
   spidCert:
-    secretName: "spid-cert"
     mountPath: "/usr/src/app/certs"
     readOnly: true
 
