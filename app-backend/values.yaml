@@ -44,6 +44,7 @@ appBackend:
 
   secrets:
     azureKeyvaultName: io-dev-keyvault
+    kubernetesSpidCertsSecretName: app-backend-spid-certs
     kubernetesSecretName: app-backend-secrets
     azureSecretNamePrefix: k8s-app-backend-secrets
     azureSecretNameSuffixes:
@@ -53,7 +54,6 @@ appBackend:
       - redis-password
 
   spidCert:
-    volumeName: "spid-cert"
     mountPath: "/usr/src/app/certs"
     readOnly: true
 

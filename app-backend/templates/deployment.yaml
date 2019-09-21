@@ -94,7 +94,7 @@ spec:
             {{- end }}
 
           volumeMounts:
-            - name: certs
+            - name: spid-certs
               mountPath: {{ .Values.appBackend.spidCert.mountPath }}
               readOnly: {{ .Values.appBackend.spidCert.readOnly }}
           {{- with .Values.appBackend.livenessProbe }}
@@ -127,6 +127,11 @@ spec:
     {{- end }}
 
       volumes:
-        - name: certs
+        - name: spid-certs
           secret:
-            secretName: {{ .Values.appBackend.spidCert.volumeName }}
+            secretName: {{ .Values.appBackend.secrets.kubernetesSpidCertsSecretName }}
+            items:
+            - key: tls.key
+              path: key.pem
+            - key: tls.crt
+              path: cert.pem
