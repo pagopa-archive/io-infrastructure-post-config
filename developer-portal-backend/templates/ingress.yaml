@@ -1,0 +1,41 @@
+---
+
+{{- if .Values.developerPortalBackend.ingress.enabled -}}
+{{- $fullName := include "developer-portal-backend.fullname" . -}}
+{{- $servicePort := .Values.developerPortalBackend.services.backendHttp.port -}}
+{{- $ingressPath := .Values.developerPortalBackend.ingress.path -}}
+apiVersion: extensions/v1beta1
+kind: Ingress
+metadata:
+  name: {{ $fullName }}
+  labels:
+    app: {{ template "developer-portal-backend.name" . }}
+    chart: {{ template "developer-portal-backend.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+{{- with .Values.developerPortalBackend.ingress.annotations }}
+  annotations:
+{{ toYaml . | indent 4 }}
+{{- end }}
+spec:
+{{- if .Values.developerPortalBackend.ingress.tls }}
+  tls:
+  {{- range .Values.developerPortalBackend.ingress.tls }}
+    - hosts:
+      {{- range .hosts }}
+        - {{ . }}
+      {{- end }}
+      secretName: {{ .secretName }}
+  {{- end }}
+{{- end }}
+  rules:
+  {{- range .Values.developerPortalBackend.ingress.hosts }}
+    - host: {{ . }}
+      http:
+        paths:
+          - path: {{ $ingressPath }}
+            backend:
+              serviceName: {{ $fullName }}-http
+              servicePort: {{ $servicePort }}
+  {{- end }}
+{{- end }}

@@ -78,3 +78,29 @@ ioOnboardingPa:
           - pa-onboarding.io.italia.it
 
 # IO-ONBOARDING-PA - end
+
+# DEVELOPER-PORTAL-BACKEND - start
+
+developerPortalBackend:
+  env:
+    arm_apim: io-prod-apim-01
+    arm_resource_group: io-prod-rg
+    client_name: developer-portal-prod
+    post_login_url: https://developer.io.italia.it
+    post_logout_url: https://developer.io.italia.it
+    reply_url: https://developer.io.italia.it
+
+  secrets:
+    azureKeyvaultName: io-prod-keyvault
+
+  ingress:
+    hosts:
+      - backend.developer-portal.prod.io.italia.it
+      - backend.developer-portal.io.italia.it
+    tls:
+      - hosts:
+          - backend.developer-portal.prod.io.italia.it
+          - backend.developer-portal.io.italia.it
+        secretName: developer-portal-backend-prod-tls
+
+# DEVELOPER-PORTAL-BACKEND - end

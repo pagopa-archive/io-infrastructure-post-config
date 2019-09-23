@@ -1,0 +1,85 @@
+---
+
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "developer-portal-backend.fullname" . }}
+  labels:
+    app: {{ template "developer-portal-backend.name" . }}
+    chart: {{ template "developer-portal-backend.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.developerPortalBackend.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "developer-portal-backend.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "developer-portal-backend.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: developer-portal-backend
+          image: "{{ .Values.global.registry }}{{ .Values.developerPortalBackend.images.backend.repository }}:{{ tpl .Values.developerPortalBackend.images.backend.tag . }}"
+          imagePullPolicy: {{ .Values.developerPortalBackend.images.pullPolicy }}
+
+          env:
+            - name: APIM_PRODUCT_NAME
+              value: "{{ .Values.developerPortalBackend.env.apim_product_name }}"
+            - name: APIM_USER_GROUPS
+              value: "{{ .Values.developerPortalBackend.env.apim_user_groups }}"
+            - name: ARM_APIM
+              value: "{{ .Values.developerPortalBackend.env.arm_apim }}"
+            - name: ARM_RESOURCE_GROUP
+              value: "{{ .Values.developerPortalBackend.env.arm_resource_group }}"
+            - name: USE_SERVICE_PRINCIPAL
+              value: "{{ .Values.developerPortalBackend.env.use_service_principal }}"
+            - name: CLIENT_NAME
+              value: "{{ .Values.developerPortalBackend.env.client_name }}"
+            - name: LOG_LEVEL
+              value: "{{ .Values.developerPortalBackend.env.log_level }}"
+            - name: POLICY_NAME
+              value: "{{ .Values.developerPortalBackend.env.policy_name }}"
+            - name: RESET_PASSWORD_POLICY_NAME
+              value: "{{ .Values.developerPortalBackend.env.reset_password_policy_name }}"
+            - name: POST_LOGIN_URL
+              value: "{{ .Values.developerPortalBackend.env.post_login_url }}"
+            - name: POST_LOGOUT_URL
+              value: "{{ .Values.developerPortalBackend.env.post_logout_url }}"
+            - name: REPLY_URL
+              value: "{{ .Values.developerPortalBackend.env.reply_url }}"
+            - name: WEBSITE_NODE_DEFAULT_VERSION
+              value: "{{ .Values.developerPortalBackend.env.website_node_default_version }}"
+            - name: WEBSITE_NPM_DEFAULT_VERSION
+              value: "{{ .Values.developerPortalBackend.env.website_npm_default_version }}"
+
+            # Secret names and values are automatically composed from the values file
+            # using the format azureSecretNamePrefix-azureSecretNameSuffix
+            {{- $azureSecretNamePrefix := .Values.developerPortalBackend.secrets.azureSecretNamePrefix -}}
+            {{- range .Values.developerPortalBackend.secrets.azureSecretNameSuffixes }}
+            {{- $azureSecretNameSuffixesUpper := . | upper }}
+            - name: {{ regexReplaceAll "-" $azureSecretNameSuffixesUpper "_" }}
+              value: {{ $azureSecretNamePrefix }}-{{ . }}@azurekeyvault
+            {{- end }}
+
+          ports:
+            - name: backend-http
+              containerPort: {{ .Values.developerPortalBackend.services.backendHttp.port }}
+              protocol: {{ .Values.developerPortalBackend.services.backendHttp.protocol }}
+          resources:
+{{ toYaml .Values.developerPortalBackend.resources.backend | indent 12 }}
+    {{- with .Values.developerPortalBackend.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.developerPortalBackend.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.developerPortalBackend.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}

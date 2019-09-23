@@ -1,0 +1,88 @@
+---
+
+global:
+  registry: ''
+
+developerPortalBackend:
+
+  replicaCount: 1
+
+  images:
+    backend:
+      repository: docker.io/teamdigitale/io-developer-portal-backend
+      tag: v0.2.3
+      pullPolicy: IfNotPresent
+
+  env:
+    apim_product_name: starter
+    apim_user_groups: apilimitedmessagewrite,apiinforead,apimessageread,apilimitedprofileread
+    arm_apim: io-dev-apim-01
+    arm_resource_group: io-dev-rg
+    use_service_principal: true
+    client_name: developer-portal-prod
+    log_level: debug
+    policy_name: b2c_1_signupin
+    reset_password_policy_name: b2c_1_passwordreset
+    post_login_url: https://developer.dev.io.italia.it
+    post_logout_url: https://developer.dev.io.italia.it
+    reply_url: https://developer.dev.io.italia.it
+    website_node_default_version: 6.11.2
+    website_npm_default_version: 6.1.0
+
+  secrets:
+    azureKeyvaultName: io-dev-keyvault
+    kubernetesSecretName: developer-portal-backend-secrets
+    azureSecretNamePrefix: k8s-developer-portal-backend-secrets
+    azureSecretNameSuffixes:
+      - admin-api-url
+      - admin-api-key
+      - appinsights-instrumentationkey
+      - arm-subscription-id
+      - arm-tenant-id
+      - service-principal-client-id
+      - service-principal-secret
+      - client-id
+      - client-secret
+      - cookie-iv
+      - cookie-key
+      - tenant-id
+
+  services:
+    backendHttp:
+      port: 3000
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      ingress.kubernetes.io/ssl-redirect: "true"
+      kubernetes.io/tls-acme: "true"
+      certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
+    path: /
+    hosts:
+      - backend.developer-portal.dev.io.italia.it
+    tls:
+      - hosts:
+          - backend.developer-portal.dev.io.italia.it
+        secretName: developer-portal-backend-dev-tls
+
+  resources:
+    # For each of the following objects, set limits
+    # removing the curly brackets after resources and
+    # uncommenting the lines below.
+    # limits:
+    #  cpu: 100m
+    #  memory: 128Mi
+    # requests:
+    #  cpu: 100m
+    #  memory: 128Mi
+    ckan: {}
+    solr: {}
+    redis: {}
+    postgresDb: {}
+
+  nodeSelector: {}
+
+  tolerations: {}
+
+  affinity: {}
