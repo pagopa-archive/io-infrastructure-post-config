@@ -14,32 +14,38 @@ developerPortalBackend:
       pullPolicy: IfNotPresent
 
   env:
-    admin_api_url: https://io-dev-apim-01.portal.azure-api.net
-    admin_api_key: b45ed6f0d68c44b588d3f1d28a4c134c
     apim_product_name: starter
     apim_user_groups: apilimitedmessagewrite,apiinforead,apimessageread,apilimitedprofileread
-    appinsights_instrumentationkey: f50807b4-8638-4940-908f-771504a2e815
     arm_apim: io-dev-apim-01
     arm_resource_group: io-dev-rg
-    arm_subscription_id: ec285037-c673-4f58-b594-d7c480da4e8b
-    arm_tenant_id: cb44f084-ca44-4753-8973-dd3045d9ad2b
     use_service_principal: true
-    service_principal_client_id: ecd91abb-8c85-4910-860a-849969c48973
-    service_principal_secret: p[@zh_g85qpla$}?gbh!
     client_name: developer-portal-prod
-    client_id: 21c10408-0c32-4853-ae19-69e2f7f76481
-    client_secret: ZlCLlZQM04951r)V5M[tCALX
-    cookie_iv: p<VZfSdK3Sya
-    cookie_key: O06ae[563Xuo!_@R8BBi1$2$nPd$r!FF
     log_level: debug
     policy_name: b2c_1_signupin
     reset_password_policy_name: b2c_1_passwordreset
     post_login_url: https://developer.dev.io.italia.it
     post_logout_url: https://developer.dev.io.italia.it
     reply_url: https://developer.dev.io.italia.it
-    tenant_id: cb44f084-ca44-4753-8973-dd3045d9ad2b
     website_node_default_version: 6.11.2
     website_npm_default_version: 6.1.0
+
+  secrets:
+    azureKeyvaultName: io-dev-keyvault
+    kubernetesSecretName: developer-portal-backend-secrets
+    azureSecretNamePrefix: k8s-developer-portal-backend-secrets
+    azureSecretNameSuffixes:
+      - admin-api-url
+      - admin-api-key
+      - appinsights-instrumentationkey
+      - arm-subscription-id
+      - arm-tenant-id
+      - service-principal-client-id
+      - service-principal-secret
+      - client-id
+      - client-secret
+      - cookie-iv
+      - cookie-key
+      - tenant-id
 
   services:
     backendHttp:
