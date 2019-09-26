@@ -16,6 +16,7 @@ ioOnboardingPa:
   env:
     io_onboarding_pa_api_host: https://api.pa-onboarding.dev.io.italia.it
     io_onboarding_pa_api_port: 443
+    io_onboarding_pa_show_fake_idp: 1
 
   services:
     http:
