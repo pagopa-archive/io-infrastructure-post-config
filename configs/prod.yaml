@@ -48,6 +48,7 @@ ioOnboardingPaApi:
     client_domain: https://pa-onboarding.io.italia.it:443
     client_spid_login_redirection_url: https://pa-onboarding.io.italia.it
     client_spid_success_redirection_url: https://pa-onboarding.io.italia.it/dashboard
+    cookie_domain: .pa-onboarding.io.italia.it
     saml_callback_url: "https://api.pa-onboarding.io.italia.it/assertion-consumer-service"
     spid_testenv_url: "https://spid-testenv.io.italia.it"
 

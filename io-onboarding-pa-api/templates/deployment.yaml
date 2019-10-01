@@ -48,6 +48,8 @@ spec:
               value: "{{ .Values.ioOnboardingPaApi.env.client_spid_login_redirection_url }}"
             - name: CLIENT_SPID_SUCCESS_REDIRECTION_URL
               value: "{{ .Values.ioOnboardingPaApi.env.client_spid_success_redirection_url }}"
+            - name: COOKIE_DOMAIN
+              value: "{{ .Values.ioOnboardingPaApi.env.cookie_domain }}"
             - name: SAML_ACCEPTED_CLOCK_SKEW_MS
               value: "{{ .Values.ioOnboardingPaApi.env.saml_accepted_clock_skew_ms }}"
             - name: SAML_ATTRIBUTE_CONSUMING_SERVICE_INDEX
