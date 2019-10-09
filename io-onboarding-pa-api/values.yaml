@@ -31,7 +31,7 @@ ioOnboardingPaApi:
     client_spid_error_redirection_url: /error.html
     client_spid_login_redirection_url: https://pa-onboarding.dev.io.italia.it
     client_spid_success_redirection_url: https://pa-onboarding.dev.io.italia.it/dashboard
-    cookie_domain: .pa-onboarding.dev.io.italia.it
+    cookie_domain: .dev.io.italia.it
     saml_accepted_clock_skew_ms: "-1"
     saml_attribute_consuming_service_index: "0"
     saml_callback_url: "https://api.pa-onboarding.dev.io.italia.it/assertion-consumer-service"
