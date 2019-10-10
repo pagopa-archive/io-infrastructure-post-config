@@ -21,8 +21,8 @@ developerPortalBackend:
     use_service_principal: true
     client_name: developer-portal-prod
     log_level: debug
-    policy_name: b2c_1_signupin
-    reset_password_policy_name: b2c_1_passwordreset
+    policy_name: B2C_1_SignUpIn
+    reset_password_policy_name: B2C_1_PasswordReset
     post_login_url: https://developer.dev.io.italia.it
     post_logout_url: https://developer.dev.io.italia.it
     reply_url: https://developer.dev.io.italia.it
