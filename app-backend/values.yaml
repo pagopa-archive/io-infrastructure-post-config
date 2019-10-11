@@ -18,7 +18,7 @@ appBackend:
   images:
     appBackend:
       repository: docker.io/teamdigitale/italia-backend
-      tag: v1.9.0
+      tag: v2.1.2
       pullPolicy: IfNotPresent
 
   env:
@@ -52,6 +52,7 @@ appBackend:
       - nh-endpoint
       - pre-shared-key
       - redis-password
+      - appinsights-instrumentationkey
 
   spidCert:
     mountPath: "/usr/src/app/certs"
