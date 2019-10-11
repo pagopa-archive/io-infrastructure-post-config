@@ -87,7 +87,7 @@ developerPortalBackend:
   env:
     arm_apim: io-prod-apim-01
     arm_resource_group: io-prod-rg
-    client_name: developer-portal-prod
+    client_name: io-prod-developer-portal
     post_login_url: https://developer.io.italia.it
     post_logout_url: https://developer.io.italia.it
     reply_url: https://developer.io.italia.it
@@ -97,12 +97,12 @@ developerPortalBackend:
 
   ingress:
     hosts:
-      - backend.developer-portal.prod.io.italia.it
-      - backend.developer-portal.io.italia.it
+      - backend.developer.prod.io.italia.it
+      - backend.developer.io.italia.it
     tls:
       - hosts:
-          - backend.developer-portal.prod.io.italia.it
-          - backend.developer-portal.io.italia.it
+          - backend.developer.prod.io.italia.it
+          - backend.developer.io.italia.it
         secretName: developer-portal-backend-prod-tls
 
 # DEVELOPER-PORTAL-BACKEND - end

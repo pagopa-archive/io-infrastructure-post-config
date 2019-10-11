@@ -19,7 +19,7 @@ developerPortalBackend:
     arm_apim: io-dev-apim-01
     arm_resource_group: io-dev-rg
     use_service_principal: true
-    client_name: developer-portal-prod
+    client_name: io-dev-developer-portal
     log_level: debug
     policy_name: B2C_1_SignUpIn
     reset_password_policy_name: B2C_1_PasswordReset
@@ -60,10 +60,10 @@ developerPortalBackend:
       certmanager.k8s.io/cluster-issuer: "letsencrypt-prod"
     path: /
     hosts:
-      - backend.developer-portal.dev.io.italia.it
+      - backend.developer.dev.io.italia.it
     tls:
       - hosts:
-          - backend.developer-portal.dev.io.italia.it
+          - backend.developer.dev.io.italia.it
         secretName: developer-portal-backend-dev-tls
 
   resources:
