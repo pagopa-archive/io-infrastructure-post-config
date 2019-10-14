@@ -68,19 +68,13 @@ developerPortalBackend:
         secretName: developer-portal-backend-dev-tls
 
   resources:
-    # For each of the following objects, set limits
-    # removing the curly brackets after resources and
-    # uncommenting the lines below.
-    # limits:
-    #  cpu: 100m
-    #  memory: 128Mi
-    # requests:
-    #  cpu: 100m
-    #  memory: 128Mi
-    ckan: {}
-    solr: {}
-    redis: {}
-    postgresDb: {}
+    backend:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
 
   nodeSelector: {}
 
