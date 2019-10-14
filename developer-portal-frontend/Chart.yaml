@@ -1,0 +1,9 @@
+---
+
+apiVersion: v1
+
+name: developer-portal
+description: IO Developer Portal frontend.
+
+version: 0.1.1
+appVersion: "snapshot"

@@ -1,0 +1,20 @@
+---
+
+apiVersion: v1
+
+kind: Service
+metadata:
+  name: {{ template "developer-portal.fullname" . }}-http
+  labels:
+    app: {{ template "developer-portal.name" . }}
+    chart: {{ template "developer-portal.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.developerPortal.services.http.type }}
+  ports:
+    - name: dev-portal
+{{ toYaml .Values.developerPortal.services.http | indent 6 }}
+  selector:
+    app: {{ template "developer-portal.name" . }}
+    release: {{ .Release.Name }}

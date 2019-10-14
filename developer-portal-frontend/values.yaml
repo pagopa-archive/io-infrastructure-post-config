@@ -1,0 +1,61 @@
+---
+
+global:
+  registry: ''
+
+developerPortal:
+
+  replicaCount: 1
+
+  images:
+    backend:
+      repository: docker.io/teamdigitale/io-messages-web
+      tag: v1.0.1
+      pullPolicy: IfNotPresent
+
+  env:
+    io_developer_portal_port: 80
+    io_developer_portal_backend: https://backend.developer.dev.io.italia.it
+    io_developer_portal_apim_base_url: https://io-dev-apim-01.azure-api.net/api/v1
+    io_developer_portal_base_url: /
+    io_developer_portal_public_path: /
+
+  services:
+    http:
+      port: 80
+
+  ingress:
+    enabled: true
+    annotations:
+      kubernetes.io/ingress.class: "nginx"
+      ingress.kubernetes.io/ssl-redirect: "true"
+      kubernetes.io/tls-acme: "true"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+    path: /
+    hosts:
+      - developer.dev.io.italia.it
+    tls:
+      - hosts:
+          - developer.dev.io.italia.it
+        secretName: developer-portal-frontend-dev-tls
+
+  resources:
+    # For each of the following objects, set limits
+    # removing the curly brackets after resources and
+    # uncommenting the lines below.
+    # limits:
+    #  cpu: 100m
+    #  memory: 128Mi
+    # requests:
+    #  cpu: 100m
+    #  memory: 128Mi
+    ckan: {}
+    solr: {}
+    redis: {}
+    postgresDb: {}
+
+  nodeSelector: {}
+
+  tolerations: {}
+
+  affinity: {}

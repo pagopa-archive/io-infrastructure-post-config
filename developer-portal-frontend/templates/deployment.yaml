@@ -1,0 +1,58 @@
+---
+
+apiVersion: apps/v1beta2
+kind: Deployment
+metadata:
+  name: {{ template "developer-portal.fullname" . }}
+  labels:
+    app: {{ template "developer-portal.name" . }}
+    chart: {{ template "developer-portal.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  replicas: {{ .Values.developerPortal.replicaCount }}
+  selector:
+    matchLabels:
+      app: {{ template "developer-portal.name" . }}
+      release: {{ .Release.Name }}
+  template:
+    metadata:
+      labels:
+        app: {{ template "developer-portal.name" . }}
+        release: {{ .Release.Name }}
+    spec:
+      containers:
+        - name: developer-portal
+          image: "{{ .Values.global.registry }}{{ .Values.developerPortal.images.backend.repository }}:{{ tpl .Values.developerPortal.images.backend.tag . }}"
+          imagePullPolicy: {{ .Values.developerPortal.images.pullPolicy }}
+
+          env:
+            - name: IO_DEVELOPER_PORTAL_PORT
+              value: "{{ .Values.developerPortal.env.io_developer_portal_port }}"
+            - name: IO_DEVELOPER_PORTAL_BACKEND
+              value: "{{ .Values.developerPortal.env.io_developer_portal_backend }}"
+            - name: IO_DEVELOPER_PORTAL_APIM_BASE_URL
+              value: "{{ .Values.developerPortal.env.io_developer_portal_apim_base_url }}"
+            - name: IO_DEVELOPER_PORTAL_BASE_URL
+              value: "{{ .Values.developerPortal.env.io_developer_portal_base_url }}"
+            - name: IO_DEVELOPER_PORTAL_PUBLIC_PATH
+              value: "{{ .Values.developerPortal.env.io_developer_portal_public_path }}"
+
+          ports:
+            - name: http
+              containerPort: {{ .Values.developerPortal.services.http.port }}
+              protocol: {{ .Values.developerPortal.services.http.protocol }}
+          resources:
+{{ toYaml .Values.developerPortal.resources.backend | indent 12 }}
+    {{- with .Values.developerPortal.nodeSelector }}
+      nodeSelector:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.developerPortal.affinity }}
+      affinity:
+{{ toYaml . | indent 8 }}
+    {{- end }}
+    {{- with .Values.developerPortal.tolerations }}
+      tolerations:
+{{ toYaml . | indent 8 }}
+    {{- end }}
