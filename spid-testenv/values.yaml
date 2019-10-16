@@ -166,7 +166,7 @@ spidTestenv:
     users: |
       {
         "carla.rossi": {
-            "sp": "https://spid.agid.gov.it/cd",
+            "sp": null,
             "attrs": {
                 "fiscalNumber": "ISPXNB32R82Y766A",
                 "name": "Carla",
@@ -194,7 +194,7 @@ spidTestenv:
             "pwd": "test"
         },
         "marco.rossi": {
-            "sp": "https://spid.agid.gov.it/cd",
+            "sp": null,
             "attrs": {
                 "fiscalNumber": "ISPXNB32R82Y766C",
                 "name": "Marco",
@@ -208,7 +208,7 @@ spidTestenv:
             "pwd": "test"
         },
         "luca.rossi": {
-            "sp": "https://spid.agid.gov.it/cd",
+            "sp": null,
             "attrs": {
                 "fiscalNumber": "ISPXNB32R82Y766D",
                 "name": "Luca",
@@ -222,7 +222,7 @@ spidTestenv:
             "pwd": "test"
         },
         "matteo.rossi": {
-            "sp": "https://spid.agid.gov.it/cd",
+            "sp": null,
             "attrs": {
                 "fiscalNumber": "ISPXNB32R82Y766E",
                 "name": "Matteo",
@@ -236,7 +236,7 @@ spidTestenv:
             "pwd": "test"
         },
         "giovanni.rossi": {
-            "sp": "https://spid.agid.gov.it/cd",
+            "sp": null,
             "attrs": {
                 "fiscalNumber": "ISPXNB32R82Y766F",
                 "name": "Giovanni",
@@ -250,7 +250,7 @@ spidTestenv:
             "pwd": "test"
         },
         "giulia.rossi": {
-            "sp": "https://spid.agid.gov.it/cd",
+            "sp": null,
             "attrs": {
                 "fiscalNumber": "ISPXNB32R82Y766G",
                 "name": "Giulia",
@@ -264,7 +264,7 @@ spidTestenv:
             "pwd": "test"
         },
         "alice.rossi": {
-            "sp": "https://spid.agid.gov.it/cd",
+            "sp": null,
             "attrs": {
                 "fiscalNumber": "ISPXNB32R82Y766H",
                 "name": "Alice",
@@ -278,7 +278,7 @@ spidTestenv:
             "pwd": "test"
         },
         "emma.rossi": {
-            "sp": "https://spid.agid.gov.it/cd",
+            "sp": null,
             "attrs": {
                 "fiscalNumber": "ISPXNB32R82Y766I",
                 "name": "Emma",
@@ -292,7 +292,7 @@ spidTestenv:
             "pwd": "test"
         },
         "sofia.rossi": {
-            "sp": "https://spid.agid.gov.it/cd",
+            "sp": null,
             "attrs": {
                 "fiscalNumber": "ISPXNB32R82Y766L",
                 "name": "Sofia",
