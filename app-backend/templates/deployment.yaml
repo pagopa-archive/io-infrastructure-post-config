@@ -30,6 +30,8 @@ spec:
       labels:
         app: {{ template "app-backend.name" . }}
         release: {{ .Release.Name }}
+      annotations:
+        timestamp: "{{ date "20060102150405" .Release.Time }}"
     spec:
       containers:
         # App Backend

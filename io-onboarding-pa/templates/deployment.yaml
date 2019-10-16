@@ -20,6 +20,8 @@ spec:
       labels:
         app: {{ template "io-onboarding-pa.name" . }}
         release: {{ .Release.Name }}
+      annotations:
+        timestamp: "{{ date "20060102150405" .Release.Time }}"
     spec:
       containers:
         # Frontend

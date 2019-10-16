@@ -30,6 +30,8 @@ spec:
       labels:
         app: {{ template "pagopa-proxy.name" . }}
         release: {{ .Release.Name }}
+      annotations:
+        timestamp: "{{ date "20060102150405" .Release.Time }}"
     spec:
       # Configuration to match Nginx TLS proxy
       # hostnames, so redirecting traffic either

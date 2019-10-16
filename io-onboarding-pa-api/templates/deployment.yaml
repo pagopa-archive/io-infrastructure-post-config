@@ -20,6 +20,8 @@ spec:
       labels:
         app: {{ template "io-onboarding-pa-api.name" . }}
         release: {{ .Release.Name }}
+      annotations:
+        timestamp: "{{ date "20060102150405" .Release.Time }}"
     spec:
       hostAliases:
       - ip: "127.0.0.1"
