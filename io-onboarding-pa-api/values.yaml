@@ -78,17 +78,20 @@ ioOnboardingPaApi:
         secretName: io-onboarding-pa-api-dev-tls
 
   resources:
-    # For each of the following objects, set limits
-    # removing the curly brackets after resources and
-    # uncommenting the lines below.
-    # limits:
-    #  cpu: 100m
-    #  memory: 128Mi
-    # requests:
-    #  cpu: 100m
-    #  memory: 128Mi
-    backend: {}
-    postgresDb: {}
+    backend:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
+    postgresDb:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
 
   nodeSelector: {}
 

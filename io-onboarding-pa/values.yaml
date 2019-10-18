@@ -38,16 +38,13 @@ ioOnboardingPa:
         secretName: io-onboarding-pa-dev-tls
 
   resources:
-    # For each of the following objects, set limits
-    # removing the curly brackets after resources and
-    # uncommenting the lines below.
-    # limits:
-    #  cpu: 100m
-    #  memory: 128Mi
-    # requests:
-    #  cpu: 100m
-    #  memory: 128Mi
-    frontend: {}
+    frontend:
+      limits:
+        cpu: 100m
+        memory: 128Mi
+      requests:
+        cpu: 100m
+        memory: 128Mi
 
   nodeSelector: {}
 

@@ -88,16 +88,13 @@ appBackend:
 
   azureKeyvaultName: io-dev-keyvault
 
-  resources: {}
-    # To set limits remove the curly brackets
-    # after the resources tag and
-    # uncomment the lines below.
-    # limits:
-    #  cpu: 100m
-    #  memory: 128Mi
-    # requests:
-    #  cpu: 100m
-    #  memory: 128Mi
+  resources:
+    limits:
+     cpu: 100m
+     memory: 128Mi
+    requests:
+     cpu: 100m
+     memory: 128Mi
 
   nodeSelector: {}
 
