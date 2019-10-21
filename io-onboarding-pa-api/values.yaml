@@ -3,6 +3,15 @@
 global:
   registry: ''
 
+postgresql:
+  global:
+    postgresql:
+      postgresqlUsername: io-onboarding-pa-api
+      postgresqlDatabase: io-onboarding-pa-api
+      existingSecret: io-onboarding-pa-api-secrets
+  persistence:
+    existingClaim: io-onboarding-pa-api-postgres
+
 ioOnboardingPaApi:
 
   replicaCount: 1
@@ -12,18 +21,9 @@ ioOnboardingPaApi:
       repository: docker.io/teamdigitale/io-onboarding-pa-api
       tag: latest
       pullPolicy: Always
-    postgresDb:
-      repository: docker.io/teamdigitale/postgres
-      tag: 12-alpine
-      pullPolicy: IfNotPresent
 
   backend:
     host: backend
-
-  postgresDb:
-    host: postgres-db
-    database: io-onboarding-pa-api
-    user: io-onboarding-pa-api
 
   env:
     api_base_path: /api/v1
@@ -33,6 +33,9 @@ ioOnboardingPaApi:
     client_spid_success_redirection_url: https://pa-onboarding.dev.io.italia.it/dashboard
     cookie_domain: .dev.io.italia.it
     node_env: development
+    postgres_host: io-onboarding-pa-api-postgresql
+    postgres_db: io-onboarding-pa-api
+    postgres_user: io-onboarding-pa-api
     saml_accepted_clock_skew_ms: "-1"
     saml_attribute_consuming_service_index: "0"
     saml_callback_url: "https://api.pa-onboarding.dev.io.italia.it/assertion-consumer-service"
@@ -49,8 +52,6 @@ ioOnboardingPaApi:
     kubernetesSpidCertsSecretName: io-onboarding-pa-api-spid-certs
     kubernetesSecretName: io-onboarding-pa-api-secrets
     azureSecretNamePrefix: k8s-io-onboarding-pa-api-secrets
-    azureSecretNameSuffixes:
-      - postgres-password
 
   spidCert:
     mountPath: "/usr/src/app/certs"
@@ -59,8 +60,6 @@ ioOnboardingPaApi:
   services:
     backendHttp:
       port: 3000
-    postgresDb:
-      port: 5432
 
   ingress:
     enabled: true
@@ -88,7 +87,6 @@ ioOnboardingPaApi:
     #  cpu: 100m
     #  memory: 128Mi
     backend: {}
-    postgresDb: {}
 
   nodeSelector: {}
 

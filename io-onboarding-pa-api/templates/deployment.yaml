@@ -23,11 +23,6 @@ spec:
       annotations:
         timestamp: "{{ date "20060102150405" .Release.Time }}"
     spec:
-      hostAliases:
-      - ip: "127.0.0.1"
-        hostnames:
-        - "{{ .Values.ioOnboardingPaApi.backend.host }}"
-        - "{{ .Values.ioOnboardingPaApi.postgresDb.host }}"
       containers:
         # Backend
         - name: backend
@@ -35,11 +30,16 @@ spec:
           imagePullPolicy: {{ .Values.ioOnboardingPaApi.images.pullPolicy }}
           env:
             - name: POSTGRES_HOST
-              value: "{{ .Values.ioOnboardingPaApi.postgresDb.host }}"
+              value: "{{ .Values.ioOnboardingPaApi.env.postgres_host }}"
             - name: POSTGRES_DB
-              value: "{{ .Values.ioOnboardingPaApi.postgresDb.database }}"
+              value: "{{ .Values.ioOnboardingPaApi.env.postgres_db }}"
             - name: POSTGRES_USER
-              value: "{{ .Values.ioOnboardingPaApi.postgresDb.user }}"
+              value: "{{ .Values.ioOnboardingPaApi.env.postgres_user }}"
+            - name: POSTGRES_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: io-onboarding-pa-api-secrets
+                  key: postgresql-password
             - name: API_BASE_PATH
               value: "{{ .Values.ioOnboardingPaApi.env.api_base_path }}"
             - name: CLIENT_DOMAIN
@@ -75,19 +75,11 @@ spec:
             - name: TOKEN_DURATION_IN_SECONDS
               value: "{{ .Values.ioOnboardingPaApi.env.token_duration_in_seconds }}"
 
-            # Secret names and values are automatically composed from the values file
-            # using the format azureSecretNamePrefix-azureSecretNameSuffix
-            {{- $azureSecretNamePrefix := .Values.ioOnboardingPaApi.secrets.azureSecretNamePrefix -}}
-            {{- range .Values.ioOnboardingPaApi.secrets.azureSecretNameSuffixes }}
-            {{- $azureSecretNameSuffixesUpper := . | upper }}
-            - name: {{ regexReplaceAll "-" $azureSecretNameSuffixesUpper "_" }}
-              value: {{ $azureSecretNamePrefix }}-{{ . }}@azurekeyvault
-            {{- end }}
-
           ports:
             - name: onboard-pa-api
               containerPort: {{ .Values.ioOnboardingPaApi.services.backendHttp.port }}
               protocol: {{ .Values.ioOnboardingPaApi.services.backendHttp.protocol }}
+
           volumeMounts:
             - name: spid-certs
               mountPath: {{ .Values.ioOnboardingPaApi.spidCert.mountPath }}
@@ -107,53 +99,7 @@ spec:
 {{ toYaml . | indent 8 }}
     {{- end }}
 
-        # Postgres DB
-        - name: postgres-db
-          image: "{{ .Values.global.registry }}{{ .Values.ioOnboardingPaApi.images.postgresDb.repository }}:{{ tpl .Values.ioOnboardingPaApi.images.postgresDb.tag . }}"
-          imagePullPolicy: {{ .Values.ioOnboardingPaApi.images.postgresDb.pullPolicy }}
-          env:
-            - name: POSTGRES_DB
-              value: "io-onboarding-pa-api"
-            - name: POSTGRES_USER
-              value: "{{ .Values.ioOnboardingPaApi.postgresDb.user }}"
-            - name: PGDATA
-              value: /var/lib/postgresql/data/pgdata
-
-            # Secret names and values are automatically composed from the values file
-            # using the format azureSecretNamePrefix-azureSecretNameSuffix
-            {{- $azureSecretNamePrefix := .Values.ioOnboardingPaApi.secrets.azureSecretNamePrefix -}}
-            {{- range .Values.ioOnboardingPaApi.secrets.azureSecretNameSuffixes }}
-            {{- $azureSecretNameSuffixesUpper := . | upper }}
-            - name: {{ regexReplaceAll "-" $azureSecretNameSuffixesUpper "_" }}
-              value: {{ $azureSecretNamePrefix }}-{{ . }}@azurekeyvault
-            {{- end }}
-
-          ports:
-            - name: postgres-db
-              containerPort: {{ .Values.ioOnboardingPaApi.services.postgresDb.port }}
-              protocol: {{ .Values.ioOnboardingPaApi.services.postgresDb.protocol }}
-          volumeMounts:
-            - mountPath: "/var/lib/postgresql/data"
-              name: io-onboarding-pa-api-postgres
-          resources:
-{{ toYaml .Values.ioOnboardingPaApi.resources.postgresDb | indent 12 }}
-    {{- with .Values.ioOnboardingPaApi.nodeSelector }}
-      nodeSelector:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.ioOnboardingPaApi.affinity }}
-      affinity:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.ioOnboardingPaApi.tolerations }}
-      tolerations:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-
       volumes:
-        - name: io-onboarding-pa-api-postgres
-          persistentVolumeClaim:
-            claimName: io-onboarding-pa-api-postgres
         - name: spid-certs
           secret:
             secretName: {{ .Values.ioOnboardingPaApi.secrets.kubernetesSpidCertsSecretName }}
