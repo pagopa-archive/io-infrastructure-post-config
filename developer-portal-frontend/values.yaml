@@ -8,7 +8,7 @@ developerPortal:
   replicaCount: 1
 
   images:
-    backend:
+    frontend:
       repository: docker.io/teamdigitale/io-messages-web
       tag: v1.0.1
       pullPolicy: IfNotPresent
@@ -49,10 +49,7 @@ developerPortal:
     # requests:
     #  cpu: 100m
     #  memory: 128Mi
-    ckan: {}
-    solr: {}
-    redis: {}
-    postgresDb: {}
+    frontend: {}
 
   nodeSelector: {}
 

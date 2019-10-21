@@ -25,7 +25,7 @@ spec:
     spec:
       containers:
         - name: developer-portal
-          image: "{{ .Values.global.registry }}{{ .Values.developerPortal.images.backend.repository }}:{{ tpl .Values.developerPortal.images.backend.tag . }}"
+          image: "{{ .Values.global.registry }}{{ .Values.developerPortal.images.frontend.repository }}:{{ tpl .Values.developerPortal.images.frontend.tag . }}"
           imagePullPolicy: {{ .Values.developerPortal.images.pullPolicy }}
 
           env:
@@ -45,7 +45,7 @@ spec:
               containerPort: {{ .Values.developerPortal.services.http.port }}
               protocol: {{ .Values.developerPortal.services.http.protocol }}
           resources:
-{{ toYaml .Values.developerPortal.resources.backend | indent 12 }}
+{{ toYaml .Values.developerPortal.resources.frontend | indent 12 }}
     {{- with .Values.developerPortal.nodeSelector }}
       nodeSelector:
 {{ toYaml . | indent 8 }}
