@@ -16,7 +16,7 @@ developerPortal:
   env:
     io_developer_portal_port: 80
     io_developer_portal_backend: https://backend.developer.dev.io.italia.it
-    io_developer_portal_apim_base_url: https://io-dev-apim-01.azure-api.net/api/v1
+    io_developer_portal_apim_base_url: https://api.dev.io.italia.it/api/v1
     io_developer_portal_base_url: /
     io_developer_portal_public_path: /
 
