@@ -14,7 +14,7 @@ developerPortalBackend:
       pullPolicy: IfNotPresent
 
   env:
-    apim_product_name: starter
+    apim_product_name: io-dev-apim-prod-01
     apim_user_groups: apilimitedmessagewrite,apiinforead,apimessageread,apilimitedprofileread
     arm_apim: io-dev-apim-01
     arm_resource_group: io-dev-rg
