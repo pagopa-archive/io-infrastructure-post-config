@@ -59,12 +59,12 @@ spec:
               value: "{{ .Values.developerPortalBackend.env.website_npm_default_version }}"
 
             # Secret names and values are automatically composed from the values file
-            # using the format azureSecretNamePrefix-azureSecretNameSuffix
-            {{- $azureSecretNamePrefix := .Values.developerPortalBackend.secrets.azureSecretNamePrefix -}}
-            {{- range .Values.developerPortalBackend.secrets.azureSecretNameSuffixes }}
-            {{- $azureSecretNameSuffixesUpper := . | upper }}
-            - name: {{ regexReplaceAll "-" $azureSecretNameSuffixesUpper "_" }}
-              value: {{ $azureSecretNamePrefix }}-{{ . }}@azurekeyvault
+            # using the format azureSecretName?azureSecretKeyName
+            {{- $azureSecretName := .Values.developerPortalBackend.secrets.azureSecretNamePrefix -}}
+            {{- range .Values.developerPortalBackend.secrets.azureSecretKeyNames }}
+            {{- $azureSecretKeyNameUpper := . | upper }}
+            - name: {{ regexReplaceAll "-" $azureSecretKeyNameUpper "_" }}
+              value: {{ $azureSecretName }}@azurekeyvault?{{ . }}
             {{- end }}
 
           ports:
