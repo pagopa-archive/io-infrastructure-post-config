@@ -47,9 +47,9 @@ appBackend:
     kubernetesSpidCertsSecretName: app-backend-spid-certs
     kubernetesSecretName: app-backend-secrets
     azureSecretNamePrefix: k8s-app-backend-secrets
-    azureSecretNameSuffixes:
+    azureSecretKeyNames:
       - api-key
-      - nh-endpoint
+      - azure-nh-endpoint
       - pre-shared-key
       - redis-password
       - appinsights-instrumentationkey

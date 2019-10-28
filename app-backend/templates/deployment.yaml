@@ -47,12 +47,8 @@ spec:
               value: "{{ .Values.appBackend.env.api_base_path }}"
             - name: "API_URL"
               value: "{{ .Values.appBackend.env.api_url }}"
-            - name: "API_KEY"
-              value: "k8s-app-backend-secrets-api-key@azurekeyvault"
             - name: "AUTHENTICATION_BASE_PATH"
               value: "{{ .Values.appBackend.env.authentication_base_path }}"
-            - name: "AZURE_NH_ENDPOINT"
-              value: "k8s-app-backend-secrets-nh-endpoint@azurekeyvault"
             - name: "AZURE_NH_HUB_NAME"
               value: "{{ .Values.appBackend.env.azure_nh_hub_name }}"
             - name: "NODE_ENV"
@@ -63,14 +59,10 @@ spec:
               value: "{{ .Values.appBackend.env.pagopa_api_url }}"
             - name: "PAGOPA_API_URL_TEST"
               value: "{{ .Values.appBackend.env.pagopa_api_url_test }}"
-            - name: "PRE_SHARED_KEY"
-              value: "k8s-app-backend-secrets-pre-shared-key@azurekeyvault"
             - name: "REDIS_URL"
               value: "{{ .Values.appBackend.env.redis_url }}"
             - name: "REDIS_PORT"
               value: "{{ .Values.appBackend.env.redis_port }}"
-            - name: "REDIS_PASSWORD"
-              value: "k8s-app-backend-secrets-redis-password@azurekeyvault"
             - name: "SAML_CALLBACK_URL"
               value: "{{ .Values.appBackend.env.saml_callback_url }}"
             - name: "SAML_ISSUER"
@@ -87,12 +79,12 @@ spec:
               value: "{{ .Values.appBackend.env.idp_metadata_refresh_interval_seconds }}"
 
             # Secret names and values are automatically composed from the values file
-            # using the format azureSecretNamePrefix-azureSecretNameSuffix
-            {{- $azureSecretNamePrefix := .Values.appBackend.secrets.azureSecretNamePrefix -}}
-            {{- range .Values.appBackend.secrets.azureSecretNameSuffixes }}
-            {{- $azureSecretNameSuffixesUpper := . | upper }}
-            - name: {{ regexReplaceAll "-" $azureSecretNameSuffixesUpper "_" }}
-              value: {{ $azureSecretNamePrefix }}-{{ . }}@azurekeyvault
+            # using the format azureSecretName?azureSecretKeyName
+            {{- $azureSecretName := .Values.appBackend.secrets.azureSecretNamePrefix -}}
+            {{- range .Values.appBackend.secrets.azureSecretKeyNames }}
+            {{- $azureSecretKeyNameUpper := . | upper }}
+            - name: {{ regexReplaceAll "-" $azureSecretKeyNameUpper "_" }}
+              value: {{ $azureSecretName }}@azurekeyvault?{{ . }}
             {{- end }}
 
           volumeMounts:
