@@ -36,7 +36,7 @@ spec:
             - name: IO_ONBOARDING_PA_SHOW_FAKE_IDP
               value: "{{ .Values.ioOnboardingPa.env.io_onboarding_pa_show_fake_idp }}"
             - name: IO_ONBOARDING_PA_IS_MOCK_ENV
-                value: "{{ .Values.ioOnboardingPa.env.io_onboarding_pa_is_mock_env }}"
+              value: "{{ .Values.ioOnboardingPa.env.io_onboarding_pa_is_mock_env }}"
           ports:
             - name: http
               containerPort: {{ .Values.ioOnboardingPa.services.http.port }}
