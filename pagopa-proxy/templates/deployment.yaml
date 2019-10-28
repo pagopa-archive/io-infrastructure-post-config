@@ -71,12 +71,12 @@ spec:
               value: "{{ .Values.pagopaProxy.env.redis_use_cluster }}"
 
             # Secret names and values are automatically composed from the values file
-            # using the format azureSecretNamePrefix-azureSecretNameSuffix
-            {{- $azureSecretNamePrefix := .Values.pagopaProxy.secrets.azureSecretNamePrefix -}}
-            {{- range .Values.pagopaProxy.secrets.azureSecretNameSuffixes }}
-            {{- $azureSecretNameSuffixesUpper := . | upper }}
-            - name: {{ regexReplaceAll "-" $azureSecretNameSuffixesUpper "_" }}
-              value: {{ $azureSecretNamePrefix }}-{{ . }}@azurekeyvault
+            # using the format azureSecretName?azureSecretKeyName
+            {{- $azureSecretName := .Values.pagopaProxy.secrets.azureSecretNamePrefix -}}
+            {{- range .Values.pagopaProxy.secrets.azureSecretKeyNames }}
+            {{- $azureSecretKeyNameUpper := . | upper }}
+            - name: {{ regexReplaceAll "-" $azureSecretKeyNameUpper "_" }}
+              value: {{ $azureSecretName }}@azurekeyvault?{{ . }}
             {{- end }}
 
           {{- with .Values.pagopaProxy.livenessProbe.pagopaProxy }}
