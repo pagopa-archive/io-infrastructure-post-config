@@ -33,7 +33,7 @@ developerPortalBackend:
     azureKeyvaultName: io-dev-keyvault
     kubernetesSecretName: developer-portal-backend-secrets
     azureSecretNamePrefix: k8s-developer-portal-backend-secrets
-    azureSecretNameSuffixes:
+    azureSecretKeyNames:
       - admin-api-url
       - admin-api-key
       - appinsights-instrumentationkey
