@@ -43,7 +43,7 @@ pagopaProxy:
     kubernetesPagopaCaChainCertsSecretName: pagopa-proxy-test-pagopa-ca-chain-certs
     kubernetesSecretName: pagopa-proxy-test-secrets
     azureSecretNamePrefix: k8s-pagopa-proxy-test-secrets
-    azureSecretNameSuffixes:
+    azureSecretKeyNames:
       - pagopa-password
       - pagopa-id-psp
       - pagopa-id-int-psp
