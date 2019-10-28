@@ -74,6 +74,18 @@ spec:
               value: "{{ .Values.ioOnboardingPaApi.env.saml_cert_path }}"
             - name: TOKEN_DURATION_IN_SECONDS
               value: "{{ .Values.ioOnboardingPaApi.env.token_duration_in_seconds }}"
+            - name: EMAIL_PASSWORD
+              value: "{{ .Values.ioOnboardingPaApi.env.email_password }}"
+            - name: EMAIL_USER
+              value: "{{ .Values.ioOnboardingPaApi.env.email_user }}"
+            - name: EMAIL_SMTP_HOST
+              value: "{{ .Values.ioOnboardingPaApi.env.email_smtp_host }}"
+            - name: EMAIL_SMTP_PORT
+              value: "{{ .Values.ioOnboardingPaApi.env.email_smtp_port }}"
+            - name: EMAIL_SMTP_SECURE
+              value: "{{ .Values.ioOnboardingPaApi.env.email_smtp_secure }}"
+            - name: EMAIL_SENDER
+              value: "{{ .Values.ioOnboardingPaApi.env.email_sender }}"
 
           ports:
             - name: onboard-pa-api
