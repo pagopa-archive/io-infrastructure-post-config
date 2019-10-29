@@ -75,7 +75,7 @@ spec:
             - name: TOKEN_DURATION_IN_SECONDS
               value: "{{ .Values.ioOnboardingPaApi.env.token_duration_in_seconds }}"
             - name: EMAIL_PASSWORD
-              value: "{{ .Values.ioOnboardingPaApi.env.email_password }}"
+              value: k8s-io-onboarding-pa-api-secrets@azurekeyvault?email-password
             - name: EMAIL_USER
               value: "{{ .Values.ioOnboardingPaApi.env.email_user }}"
             - name: EMAIL_SMTP_HOST
