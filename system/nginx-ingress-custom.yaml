@@ -10,7 +10,7 @@ controller:
     enabled: "true"
   service:
     externalTrafficPolicy: "Local"
-    loadBalancerIP: 13.80.16.80
+    loadBalancerIP: 13.93.73.197
 defaultBackend:
   nodeSelector:
     beta.kubernetes.io/os: linux
