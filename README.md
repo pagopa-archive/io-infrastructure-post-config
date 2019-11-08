@@ -93,10 +93,10 @@ kubectl apply -f system/azure-file-sc.yaml
 
 In order to be able to use the Azure files storage class, both a ClusterRole and a ClusterRoleBinding need to be created.
 
-To do so, from the *system* folder run:
+To do so, run:
 
 ```shell
-kubectl apply -f azure-pvc-roles.yaml
+kubectl apply -f system/azure-pvc-roles.yaml
 ```
 
 ### Install tiller: the server-side component of helm
