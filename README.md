@@ -43,9 +43,9 @@ This readme explains how deploy and manage Kubernetes resources for the IO proje
 
 >NOTE: You can either ask your subscription id to your administrator or view it online from [portal.azure.com](portal.azure.com).
 
-6. Download the K8S cluster configuration (`az aks get-credentials -n AKS_CLUSTER_NAME -g RESOURCE_GROUP`)
+6. Download the K8S cluster configuration: if you're a user of an already existing cluster download the credentials with your own Azure username: `az aks get-credentials -n AKS_CLUSTER_NAME -g RESOURCE_GROUP`. Otherwise, if you've just provisioned the k8s cluster and it's the very first time you are accessing it, download the credentials using the admin credentials: `az aks get-credentials -n AKS_CLUSTER_NAME -g RESOURCE_GROUP --admin`); then, proceed to the next section .
 
->NOTE: You can either ask your resource group and AKS cluster name to your administrator or view it online from [portal.azure.com](portal.azure.com).
+>NOTE: You can either ask your resource group and AKS cluster name to your administrator or view it online at [portal.azure.com](portal.azure.com).
 
 7. You may have more than one cluster configuration on your computer.
 
@@ -97,23 +97,6 @@ To do so, from the *system* folder run:
 
 ```shell
 kubectl apply -f azure-pvc-roles.yaml
-```
-
-## Deploy Azure Storage PersistentVolumeClaim (PVCs) for IO services
-
-PVCs for IO services are defined outside the helm-charts to avoid their deletion, while a chart gets removed for maintenance, or simply for human errors.
-PVC definitions can be found in the *storage* folder. Each PVC is prefixed with the name of the chart that makes use of it, and should be created before installing the corresponding chart.
-
-To create a PVC for a service, run
-
-```shell
-kubectl apply -f storage/SERVICE_NAME.yaml
-```
-
-PVCs can also be addded all at once, running
-
-```shell
-kubectl apply -f storage
 ```
 
 ### Install tiller: the server-side component of helm
@@ -205,6 +188,23 @@ helm install stable/nginx-ingress \
     --set controller.replicaCount=2 \
     --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux \
     --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux
+```
+
+## Deploy Azure Storage PersistentVolumeClaim (PVCs) for IO services
+
+PVCs for IO services are defined outside the helm-charts to avoid their deletion, while a chart gets removed for maintenance, or simply for human errors.
+PVC definitions can be found in the *storage* folder. Each PVC is prefixed with the name of the chart that makes use of it, and should be created before installing the corresponding chart.
+
+To create a PVC for a service, run
+
+```shell
+kubectl apply -f storage/SERVICE_NAME.yaml
+```
+
+PVCs can also be addded all at once, running
+
+```shell
+kubectl apply -f storage
 ```
 
 ## Deploy generic resources and services
