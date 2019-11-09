@@ -99,18 +99,103 @@ To do so, run:
 kubectl apply -f system/azure-pvc-roles.yaml
 ```
 
-### Install tiller: the server-side component of helm
+### Install tiller: the server-side component of Helm
 
 Tiller (the server-side component of helm) is required to install any other component.
 
-To install *tiller* run:
+Different things need to be done to secure the Tiller installation:
+
+1) Activate TLS-based communication between the helm-client and Tiller. This provides mutual authentication and encryption, and prevents anyone from using helm without authenticating, even from inside the cluster (i.e. one of the cluster pods).
+
+2) Install Tiller in a dedicated namespace and give its service account specific permissions to only operate in specific namespaces (i.e. not in kube-system!)
+
+#### Create certificates for Helm/Tiller
+
+If you or other administrators have already generated some certificates for helm/tiller, this paragraph can be skipped. Otherwise, do the following:
 
 ```shell
-helm init
-kubectl create serviceaccount --namespace kube-system tiller
-kubectl create clusterrolebinding tiller-cluster-rule --clusterrole=cluster-admin --serviceaccount=kube-system:tiller
-kubectl patch deploy --namespace kube-system tiller-deploy -p '{"spec":{"template":{"spec":{"serviceAccount":"tiller"}}}}'
-helm init --service-account tiller --upgrade
+# Generate CA key
+openssl genrsa -out ca.key.pem 4096
+
+# Generate CA cert
+# (you may have minor issues generating v3_ca
+# extensions on MacOS. Google is you friend :))
+openssl req -key ca.key.pem -new -x509 \
+    -days 7300 -sha256 \
+    -out ca.cert.pem \
+    -extensions v3_ca
+
+# Generate the key for the Tiller service account
+openssl genrsa -out tiller.key.pem 4096
+
+# Generate the csr for the Tiller service account
+openssl req -new -sha256 \
+    -key tiller.key.pem \
+    -out tiller.csr.pem
+
+# Generate the certificate for the Tiller service account
+openssl x509 -req -days 365 \
+    -CA ca.cert.pem \
+    -CAkey ca.key.pem \
+    -CAcreateserial \
+    -in tiller.csr.pem \
+    -out tiller.cert.pem
+
+# Generate the key for the clients
+openssl genrsa -out client.key.pem 4096
+
+# Generate the csr for the clients
+openssl req -new -sha256 \
+    -key client.key.pem \
+    -out client.csr.pem
+
+# Generate the certificate for the clients
+openssl x509 -req -days 365 \
+    -CA ca.cert.pem \
+    -CAkey ca.key.pem \
+    -CAcreateserial \
+    -in client.csr.pem \
+    -out client.cert.pem
+```
+
+#### Tiller namespace, Role, ClusterRoles and RoleBindings
+
+A dedicated yaml file has already been created for this goal. Double check in the file what namespaces and privileges have been granted to Tiller. Then, run:
+
+```shell
+kubectl apply -f system/tiller-config.yaml
+```
+
+#### Install Tiller
+
+Finally, Tiller can be installed running:
+
+```shell
+helm init \
+    --tiller-tls \
+    --tiller-tls-cert tiller.cert.pem \
+    --tiller-tls-key tiller.key.pem \
+    --tiller-tls-verify \
+    --tls-ca-cert ca.cert.pem \
+    --service-account tiller \
+    --tiller-namespace tiller \
+    --history-max 200
+```
+
+#### Configure the helm client
+
+For a more convenient use of the helm client, copy the CA certificate, the client certificate and the client key in your helm home directory:
+
+```shell
+cp ca.cert.pem $(helm home)/ca.pem
+cp client.cert.pem $(helm home)/cert.pem
+cp client.key.pem $(helm home)/key.pem
+```
+
+From this moment, helm commands can be simply invoked doing (example with *helm ls*):
+
+```shell
+helm ls --tiller-namespace tiller --tls
 ```
 
 ### Enable synchronization of Azure Keyvault secrets with Kubernetes secrets
