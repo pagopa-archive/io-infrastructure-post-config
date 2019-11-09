@@ -17,3 +17,8 @@ out/
 **/charts
 **/secrets.yaml
 **/secrets
+
+# Possible charts fetched along the installation
+azure-key-vault-env-injector
+azure-key-vault-controller
+nginx-ingress

@@ -195,7 +195,7 @@ cp client.key.pem $(helm home)/key.pem
 From this moment, helm commands can be simply invoked doing (example with *helm ls*):
 
 ```shell
-helm ls --tiller-namespace tiller --tls
+helm ls --tls --tiller-namespace tiller
 ```
 
 ### Enable synchronization of Azure Keyvault secrets with Kubernetes secrets
@@ -203,30 +203,6 @@ helm ls --tiller-namespace tiller --tls
 It's strongly recommended to make Kubernetes retrieve secrets from the Azure Keyvault, instead of manually creating and editing secrets directly in Kubernetes. This approach is safer and allows an easier maintenance of the Kubernetes cluster.
 
 The secrets synchronization and container injection is realized using [this component](https://github.com/SparebankenVest/azure-key-vault-to-kubernetes).
-
-Add the *spv-charts* repo and update the repo index:
-
-```shell
-helm repo add spv-charts http://charts.spvapi.no
-helm repo update
-```
-
-Installation:
-
-```shell
-helm install spv-charts/azure-key-vault-env-injector \
-    -n key-vault-env-injector \
-    --set installCrd=false
-
-helm install spv-charts/azure-key-vault-controller \
-    -n key-vault-controller
-```
-
-Enable the automatic env variables injection for all containers in the default namespace:
-
-```shell
-kubectl apply -f system/azure-key-vault.yaml
-```
 
 Each chart already contains an *azure-key-vault-secrets.yaml* file that creates
 
@@ -236,13 +212,51 @@ Each chart already contains an *azure-key-vault-secrets.yaml* file that creates
 
 * Moreover, environment variables are imported in the *deployment.yaml* files with the value format `name-of-the-variable@azurekeyvault`
 
+#### Installation
+
+```shell
+kubectl create namespace azurekeyvaultsecrets
+
+helm repo add spv-charts http://charts.spvapi.no
+helm repo update
+
+helm fetch spv-charts/azure-key-vault-env-injector --version 0.1.4 --untar
+
+helm template azure-key-vault-env-injector \
+    -n key-vault-env-injector \
+    --namespace azurekeyvaultsecrets \
+    --set installCrd=false \
+    | kubectl apply -n -f -
+
+helm fetch spv-charts/azure-key-vault-controller --version 0.1.22 --untar
+
+helm template azure-key-vault-controller \
+    -n key-vault-controller \
+    --namespace azurekeyvaultsecrets \
+    | kubectl apply -n -f -
+```
+
+#### Enable automatic environment variables injection
+
+Enable the automatic env variables injection for all containers in the default namespace:
+
+```shell
+kubectl apply -f system/azure-key-vault.yaml
+```
+
 ### Deploy the cert-manager
 
 The cert-manager is a Kubernetes component that takes care of adding and renewing TLS certificates for any virtual host specified in the ingress, through the integration with some providers (i.e. letsencrypt) .
 
 > **Warning:** If the first command generates a validation error, you should update the *kubectl* client.
 
-To deploy the cert-manager follow the helm installation instructions from the [official website](https://docs.cert-manager.io/en/latest/getting-started/install/kubernetes.html#steps).
+To deploy the cert-manager, run:
+
+```shell
+kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.11.0/cert-manager.yaml
+```
+
+>More info can be found on the [official cert-manager website](https://docs.cert-manager.io/en/latest/getting-started/install/kubernetes.html#steps).
 
 ### Apply cert-manager issuers
 
@@ -261,19 +275,17 @@ Then, create a name space for the `nxignx-ingress`:
 
 ```shell
 kubectl create namespace ingress
-```
 
-And install the ingress itself:
+helm fetch stable nginx-ingress --version 1.24.7 --untar
 
-```shell
-helm install stable/nginx-ingress \
+helm template nginx-ingress \
+    -n ingress \
     --namespace ingress \
-    -n io-ingress \
     -f system/nginx-ingress-custom.yaml \
-    --set controller.replicaCount=2 \
-    --set controller.nodeSelector."beta\.kubernetes\.io/os"=linux \
-    --set defaultBackend.nodeSelector."beta\.kubernetes\.io/os"=linux
+    | kubectl apply -n -f -
 ```
+
+>More info about the nginx standard installation can be found on the [official nginx ingress website](https://kubernetes.github.io/ingress-nginx/deploy/).
 
 ## Deploy Azure Storage PersistentVolumeClaim (PVCs) for IO services
 
@@ -308,13 +320,13 @@ Each helm chart configures one or more of the following services:
 To list existing deployments
 
 ```shell
-helm ls
+helm --tls --tiller-namespace tiller ls
 ```
 
 To deploy an IO service
 
 ```shell
-helm install [-f configs/CONFIG_NAME.yaml] [-n DEPLOYMENT_NAME] {NAME_OF_YOUR_CHART}
+helm install --tls --tiller-namespace tiller [-f configs/CONFIG_NAME.yaml] [-n DEPLOYMENT_NAME] {NAME_OF_YOUR_CHART}
 ```
 
 Where:
@@ -328,19 +340,19 @@ Where:
 For example
 
 ```shell
-helm install -n app-backend app-backend
+helm install --tls --tiller-namespace tiller -n app-backend app-backend
 ```
 
 Or, to deploy the same app-backend app, applying the production configuration
 
 ```shell
-helm install -f configs/prod.yaml -n app-backend app-backend
+helm install --tls --tiller-namespace tiller -f configs/prod.yaml -n app-backend app-backend
 ```
 
 To remove an existing IO service
 
 ```shell
-helm delete --purge [DEPLOYMENT_NAME]
+helm delete --tls --tiller-namespace tiller --purge [DEPLOYMENT_NAME]
 ```
 
 ### Kubernetes secrets
