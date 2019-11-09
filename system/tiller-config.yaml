@@ -1,0 +1,129 @@
+---
+
+# Create namespace where to deploy Tiller
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: tiller
+
+---
+
+# Create namespace where the cert-manager
+# will be deployed
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: cert-manager
+
+---
+
+# Create namespace where the nginx-ingress
+# will be deployed
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: ingress
+
+---
+
+# Create Tiller service account
+apiVersion: v1
+kind: ServiceAccount
+metadata:
+  name: tiller
+  namespace: tiller
+
+---
+
+# Create role to allow Tiller to save
+# history in its own namespace
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  namespace: tiller
+  name: tiller
+rules:
+- apiGroups: ["", "extensions", "apps"]
+  resources: ["configmaps"]
+  verbs: ["*"]
+
+---
+
+# Bind tiller role above to tiller service account
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: tiller
+  namespace: tiller
+subjects:
+- kind: ServiceAccount
+  name: tiller
+  namespace: tiller
+roleRef:
+  kind: Role
+  name: tiller
+  apiGroup: rbac.authorization.k8s.io
+
+---
+
+# Create cluster role to allow tiller to
+# manage all resources in a namespace
+kind: ClusterRole
+apiVersion: rbac.authorization.k8s.io/v1
+metadata:
+  name: tiller
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+
+---
+
+# Bind tiller ClusterRole to the default namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tiller
+  namespace: default
+subjects:
+- kind: ServiceAccount
+  name: tiller
+  namespace: tiller
+roleRef:
+  kind: ClusterRole
+  name: tiller
+  apiGroup: rbac.authorization.k8s.io
+
+---
+
+# Bind tiller ClusterRole to the cert-manager namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tiller
+  namespace: cert-manager
+subjects:
+- kind: ServiceAccount
+  name: tiller
+  namespace: tiller
+roleRef:
+  kind: ClusterRole
+  name: tiller
+  apiGroup: rbac.authorization.k8s.io
+
+---
+
+# Bind tiller ClusterRole to the ingress namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tiller
+  namespace: ingress
+subjects:
+- kind: ServiceAccount
+  name: tiller
+  namespace: tiller
+roleRef:
+  kind: ClusterRole
+  name: tiller
+  apiGroup: rbac.authorization.k8s.io
