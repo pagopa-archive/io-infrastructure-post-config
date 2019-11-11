@@ -282,7 +282,7 @@ helm template nginx-ingress \
     -n ingress \
     --namespace ingress \
     -f system/nginx-ingress-custom.yaml \
-    | kubectl apply -n -f -
+    | kubectl apply -n ingress -f -
 ```
 
 >More info about the nginx standard installation can be found on the [official nginx ingress website](https://kubernetes.github.io/ingress-nginx/deploy/).
