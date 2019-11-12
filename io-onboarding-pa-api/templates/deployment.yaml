@@ -89,6 +89,8 @@ spec:
               value: "{{ .Values.ioOnboardingPaApi.env.email_smtp_secure }}"
             - name: EMAIL_SENDER
               value: "{{ .Values.ioOnboardingPaApi.env.email_sender }}"
+            - name: INDICEPA_ADMINISTRATIONS_URL
+              value: "{{ .Values.ioOnboardingPaApi.env.indicepa_administrations_url }}"
 
           ports:
             - name: onboard-pa-api
