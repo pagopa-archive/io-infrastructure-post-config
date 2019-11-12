@@ -51,6 +51,7 @@ ioOnboardingPaApi:
     email_smtp_port: "465"
     email_smtp_secure: "true"
     email_sender: "portaleonboarding@gmail.com"
+    indicepa_administrations_url: "https://raw.githubusercontent.com/teamdigitale/io-onboarding-pa-api/master/development-data/administrations.txt"
 
   secrets:
     azureKeyvaultName: io-dev-keyvault
