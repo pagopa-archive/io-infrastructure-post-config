@@ -35,11 +35,29 @@ This readme explains how deploy and manage Kubernetes resources for the IO proje
 
 ## Prerequisites
 
-1. Ask your System Administrator for a personal Azure account to access the existing deployment
-2. Install the [Azure CLI tool](https://github.com/Azure/azure-cli). Once installed, try to login with `az login`. A web page will be displayed. Once the process completes you should be able to use the az tool and continue
-3. Install and setup [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
-4. Install and setup the [helm client](https://helm.sh/docs/using_helm/#installing-helm)
-5. Make sure you're on the correct azure subscription (`az account set -s YOUR-SUBSCRIPTION`)
+* Ask your System Administrator for a personal Azure account to access the existing deployment
+
+* Install the [Azure CLI tool](https://github.com/Azure/azure-cli). Once installed, try to login with `az login`. A web page will be displayed. Once the process completes you should be able to use the az tool and continue
+
+* Install and setup [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
+
+* Install and setup the [helm client](https://helm.sh/docs/using_helm/#installing-helm)
+
+* Ask the Administrator for certificates to access the helm installation. To simplify the helm commands run time by time, you can copy the CA certificate, the client private key and the client certificate to a specific location, so they're automatically added:
+
+```shell
+$ cp ca.cert.pem $(helm home)/ca.pem
+$ cp helm.cert.pem $(helm home)/cert.pem
+$ cp helm.key.pem $(helm home)/key.pem
+```
+
+Although this is quite inconvenient, you still have the option to manually specify where the certificates are located at each helm call, for example:
+
+```shell
+helm ls --tiller-namespace tiller --tls --tls-ca-cert ca.cert.pem --tiller-tls-cert helm.cert.pem --tiller-tls-key helm.key.pem
+```
+
+* Make sure you're on the correct azure subscription (`az account set -s YOUR-SUBSCRIPTION`)
 
 >NOTE: You can either ask your subscription id to your administrator or view it online from [portal.azure.com](portal.azure.com).
 
