@@ -52,6 +52,9 @@ ioOnboardingPaApi:
     email_smtp_secure: "true"
     email_sender: "portaleonboarding@gmail.com"
     indicepa_administrations_url: "https://raw.githubusercontent.com/teamdigitale/io-onboarding-pa-api/master/development-data/administrations.txt"
+    arss_wsdl_url: "https://arss.demo.firma-automatica.it/ArubaSignService/ArubaSignService?wsdl"
+    arss_identity_type_otp_auth: "demoprod"
+    arss_identity_user: "titolare_rem"
 
   secrets:
     azureKeyvaultName: io-dev-keyvault
