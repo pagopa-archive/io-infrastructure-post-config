@@ -91,6 +91,22 @@ spec:
               value: "{{ .Values.ioOnboardingPaApi.env.email_sender }}"
             - name: INDICEPA_ADMINISTRATIONS_URL
               value: "{{ .Values.ioOnboardingPaApi.env.indicepa_administrations_url }}"
+            - name: ARSS_WSDL_URL
+              value: "{{ .Values.ioOnboardingPaApi.env.arss_wsdl_url }}"
+            - name: ARSS_IDENTITY_OTP_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: io-onboarding-pa-api-secrets
+                  key: arss-identity-otp-pwd
+            - name: ARSS_IDENTITY_TYPE_OTP_AUTH
+              value: "{{ .Values.ioOnboardingPaApi.env.arss_identity_type_otp_auth }}"
+            - name: ARSS_IDENTITY_USER
+              value: "{{ .Values.ioOnboardingPaApi.env.arss_identity_user }}"
+            - name: ARSS_IDENTITY_USER_PWD
+              valueFrom:
+                secretKeyRef:
+                  name: io-onboarding-pa-api-secrets
+                  key: arss-identity-user-pwd
 
           ports:
             - name: onboard-pa-api
