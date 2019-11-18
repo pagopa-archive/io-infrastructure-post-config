@@ -6,15 +6,15 @@ This is the chart to install the backend services of the IO PA onboarding portal
 
 Some secrets need to be installed before being able to proceed with the chart installation. Postgres will be installed using its official helm-chart as a dependency of the main chart.
 
-### Create the postgres secret
+### Create the IO onboarding PA API k8s secrets
 
-* Edit and apply the *postgres-secret.yaml* file in this directory to create a local kubernetes secret for postgres.
+* Edit and apply the *io-onboarding-pa-api-secrets.yaml* file in this directory to create a local kubernetes secret.
 
 ```shell
-kubectl apply -f io-onboarding-pa-api/postgres-secret.yaml
+kubectl apply -f io-onboarding-pa-api/io-onboarding-pa-api-secrets.yaml
 ```
 
->NOTE: the postgres official helm-chart still does not support the AzureKeyvaultSecrets plugin.
+>NOTE: the postgres official helm-chart still does not support the AzureKeyvaultSecrets plugin. This is the reason why a local secret still needs to be created.
 
 ### Import SPID certificates
 
