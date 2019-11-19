@@ -82,6 +82,16 @@ Following, are the instructions to deploy the system services needed by all IO a
 
 > **WARNING:** The following commands should be generally run once, while setting up the cluster the first time. Make sure this is your case before proceeding. If you run them anyway, nothing bad should happen, since all of them should be idempotent.
 
+All system related configurations can be found in the system folder. Files are divided in three categories (indicated by a name prefix):
+
+* common: configurations valid for all environments
+
+* dev: configurations valid for the dev environment
+
+* prod: configurations valid for the prod environment
+
+Following configurations are based on the dev environment. They can be replicated for the production environment, simply substituting the dev-prefixed files with prod-prefixed files.
+
 ### Storage and data persistence
 
 By default Azure uses two *storage classes* to provide data persistence functionalities: *default* and *managed-premium*. These are automatically configured by Azure at setup time. By default, both classes do not support dynamic storage resizes, and their reclaim policy is set to *Delete*, which would cause data to be deleted when a persistent volume claim gets deleted.
@@ -93,7 +103,7 @@ The *Azure disk custom storage class* implements all the features provided by bo
 To deploy the custom storage class, run:
 
 ```shell
-kubectl apply -f system/azure-disk-sc-custom.yaml
+kubectl apply -f system/common-azure-disk-sc-custom.yaml
 ```
 
 >Note: The limitation of disk type storage classes is that disks can be attached only to one pod at the time.
@@ -106,7 +116,7 @@ Since some services may take advantage of it, it's strongly suggested to load it
 To load the Azure file storage class, run:
 
 ```shell
-kubectl apply -f system/azure-file-sc.yaml
+kubectl apply -f system/common-azure-file-sc.yaml
 ```
 
 In order to be able to use the Azure files storage class, both a ClusterRole and a ClusterRoleBinding need to be created.
@@ -114,7 +124,7 @@ In order to be able to use the Azure files storage class, both a ClusterRole and
 To do so, run:
 
 ```shell
-kubectl apply -f system/azure-pvc-roles.yaml
+kubectl apply -f system/common-azure-pvc-roles.yaml
 ```
 
 ### Install tiller: the server-side component of Helm
@@ -181,7 +191,7 @@ openssl x509 -req -days 365 \
 A dedicated yaml file has already been created for this goal. Double check in the file what namespaces and privileges have been granted to Tiller. Then, run:
 
 ```shell
-kubectl apply -f system/tiller-config.yaml
+kubectl apply -f system/common-tiller-config.yaml
 ```
 
 #### Install Tiller
@@ -259,7 +269,7 @@ helm template azure-key-vault-controller \
 Enable the automatic env variables injection for all containers in the default namespace:
 
 ```shell
-kubectl apply -f system/azure-key-vault.yaml
+kubectl apply -f system/common-azure-key-vault.yaml
 ```
 
 ### Deploy the cert-manager
@@ -281,7 +291,7 @@ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/relea
 To integrate the cert-manager with the *letsencrypt certificate issuer*, run:
 
 ```shell
-kubectl apply -f system/cert-manager-issuers.yaml
+kubectl apply -f system/common-cert-manager-issuers.yaml
 ```
 
 ### Deploy the ingress controller
@@ -299,7 +309,7 @@ helm fetch stable nginx-ingress --version 1.24.7 --untar
 helm template nginx-ingress \
     -n ingress \
     --namespace ingress \
-    -f system/nginx-ingress-custom.yaml \
+    -f system/dev-nginx-ingress-custom.yaml \
     | kubectl apply -n ingress -f -
 ```
 
