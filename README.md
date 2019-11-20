@@ -53,8 +53,6 @@ More info [here](https://kubernetes-v1-4.github.io/docs/user-guide/kubectl/kubec
 
 * Ask the Administrator for certificates to access the helm installation. To simplify the helm commands run time by time, you can copy the CA certificate, the client private key and the client certificate to a specific location, so they're automatically added:
 
-
-
 >NOTE: Although this is quite inconvenient, you'll still have the option to manually specify where the certificates are located at each helm call.
 
 * You're ready to go! Depending on the permissions you have, you should be able to see the available resources on the cluster, if any: `kubectl get pods [-n NAMESPACE]`, and the helm deployments (`helm ls`)
@@ -408,6 +406,48 @@ To integrate the cert-manager with the *letsencrypt certificate issuer*, run:
 
 ```shell
 kubectl apply -f system/common-cert-manager-issuers.yaml
+```
+
+### Deploy Application Gateway Ingress Controller (AGIC)
+
+IO ingress functionalities are realized through the integration with the Azure Application Gateway with a component called [Application Gateway Ingress Controller (AGIC)](https://azure.github.io/application-gateway-kubernetes-ingress/). Integrating with the Application Gateway allows a better security, for example against volumetric attacks.
+
+The following steps allow to configure the AGIC component on a brand new Kubernetes cluster and assume that a compliant Application Gateway has been already provisioned with [Terraform](https://github.com/teamdigitale/io-infrastructure-live).
+
+>NOTE: substitute any reference of dev with prod as needed (if you're configuring a production environment)
+
+```shell
+# Create a dedicated namespace
+kubectl create namespace ingress-azure
+
+# Add the AGIC helm repository and update the dependencies
+helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
+helm repo update
+
+# Fetch the AGIC chart locally
+helm fetch application-gateway-kubernetes-ingress/ingress-azure --version 1.0.0 --untar
+
+# Create a Service Principal and locally save its authentication info
+secretJson=$(az ad sp create-for-rbac --subscription ec285037-c673-4f58-b594-d7c480da4e8b --name io-dev-sp-k8s-01-agw --sdk-auth | base64 -b 0)
+
+# Locally save the Kubernetes cluster API server address
+apiServerAddress=$(az aks show -n io-dev-aks-k8s-01 -g io-dev-rg --query fqdn | sed 's/"//g')
+
+# Install the Application Gateway Ingress Controller
+helm template ingress-azure \
+  --name ingress-azure \
+  --namespace ingress-azure \
+  --set appgw.name=io-dev-ag-to-k8s-01 \
+  --set appgw.resourceGroup=io-dev-rg \
+  --set appgw.subscriptionId=ec285037-c673-4f58-b594-d7c480da4e8b \
+  --set appgw.shared=false \
+  --set appgw.usePrivateIP=false \
+  --set armAuth.type=servicePrincipal \
+  --set armAuth.secretJSON=$secretJson \
+  --set rbac.enabled=true \
+  --set verbosityLevel=3 \
+  --set kubernetes.watchNamespace=default \
+  --set aksClusterConfiguration.apiServerAddress=$apiServerAddress | kubectl apply -n ingress-azure -f -
 ```
 
 ### Deploy the Nginx ingress controller
