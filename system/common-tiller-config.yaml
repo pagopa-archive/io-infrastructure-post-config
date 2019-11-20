@@ -75,3 +75,28 @@ roleRef:
   kind: ClusterRole
   name: tiller
   apiGroup: rbac.authorization.k8s.io
+
+---
+
+# Create namespace for onboarding
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: onboarding
+
+---
+
+# Bind tiller ClusterRole to the onboaring namespace
+apiVersion: rbac.authorization.k8s.io/v1
+kind: RoleBinding
+metadata:
+  name: tiller
+  namespace: onboarding
+subjects:
+- kind: ServiceAccount
+  name: tiller
+  namespace: tiller
+roleRef:
+  kind: ClusterRole
+  name: tiller
+  apiGroup: rbac.authorization.k8s.io
