@@ -1,0 +1,43 @@
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+ name: cluster-admins
+roleRef:
+ apiGroup: rbac.authorization.k8s.io
+ kind: ClusterRole
+ name: cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  # io-dev-group-k8s-admins
+  name: "85f72bda-e6e4-4422-b2ea-f538903fda3e"
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: Role
+metadata:
+  name: onboarding
+  namespace: onboarding
+rules:
+- apiGroups: ["*"]
+  resources: ["*"]
+  verbs: ["*"]
+
+---
+
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+ name: onboarding
+roleRef:
+ apiGroup: rbac.authorization.k8s.io
+ kind: ClusterRole
+ name: onboarding
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  # io-dev-group-k8s-onboarding
+  name: "742b8b18-dc54-47cf-8697-76a864422925"
