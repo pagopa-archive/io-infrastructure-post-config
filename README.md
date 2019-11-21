@@ -6,18 +6,16 @@ The repository contains the Kubernetes configurations used to configure IO resou
 
 More informations about the IO can be found on the [Digital Transformation Team website](https://teamdigitale.governo.it/en/projects/digital-citizenship.htm)
 
+## How to use this repository and its tools
+
+The repository contains a collection of Kubernetes configuration files to provision some of the IO services on top of an existing Kubernetes cluster. The guide assumes a repository has been already provisioned using some [Terraform scripts](https://github.com/teamdigitale/io-infrastructure-live).
+
 ## Tools references
 
 The repository makes mainly use of the following tools:
 
 * [Kubernetes](https://kubernetes.io/)
-* [Helm](https://helm.sh/)
-
-## How to use this repository and its tools
-
-The repository is a collection of scripts to run in the IO infrastructure to configure various types of resources (i.e. VMs, containers, ...), previously provisioned using some [Terraform scripts](https://github.com/teamdigitale/io-infrastructure-live).
-
-To configure the IO infrastructure you should have full access to it with administrative privileges.
+* [Helm 2.x](https://helm.sh/)
 
 ## Folder structure
 
