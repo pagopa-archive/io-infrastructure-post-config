@@ -319,7 +319,7 @@ helm template nginx-ingress \
 
 One or more Active Directory groups should have already been created through [Terraform](https://github.com/teamdigitale/io-infrastructure-live). It's time to create some Kubernetes roles and map them to the groups created.
 
-* Open the *dev-azure-aad-cluster-roles.yaml* file and make sure the group names are up to date. Groups names (IDs) can be found in the Azure GUI under Azure Active Directory -> Groups -> Name of the group -> Overview
+* Open the [dev-azure-aad-cluster-roles.yaml file](system/dev-azure-aad-cluster-roles.yaml) and make sure the group names are up to date. Groups names (IDs) can be found in the Azure GUI under Azure Active Directory -> Groups -> Name of the group -> Overview
 
 * Apply the roles and role bindings
 
