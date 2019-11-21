@@ -1,0 +1,53 @@
+---
+
+# Bind the admin AD group to the cluster-admin role
+apiVersion: rbac.authorization.k8s.io/v1
+kind: ClusterRoleBinding
+metadata:
+ name: cluster-admins
+roleRef:
+ apiGroup: rbac.authorization.k8s.io
+ kind: ClusterRole
+ name: cluster-admin
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  # io-dev-group-k8s-admins
+  name: "85f72bda-e6e4-4422-b2ea-f538903fda3e"
+
+---
+
+# Create an onboarding role to only provide
+# full access to the onboarding namespace
+kind: Role
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: onboarding
+  namespace: onboarding
+rules:
+- apiGroups: ["", "extensions", "apps"]
+  resources: ["*"]
+  verbs: ["*"]
+- apiGroups: ["batch"]
+  resources:
+  - jobs
+  - cronjobs
+  verbs: ["*"]
+
+---
+
+# Bind the onboarding AD group to the onboarding role
+kind: RoleBinding
+apiVersion: rbac.authorization.k8s.io/v1beta1
+metadata:
+  name: onboarding
+  namespace: onboarding
+roleRef:
+  apiGroup: rbac.authorization.k8s.io
+  kind: Role
+  name: onboarding
+subjects:
+- apiGroup: rbac.authorization.k8s.io
+  kind: Group
+  # io-dev-group-k8s-onboarding
+  name: "742b8b18-dc54-47cf-8697-76a864422925"

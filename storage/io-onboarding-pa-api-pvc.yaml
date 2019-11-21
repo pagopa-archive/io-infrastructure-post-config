@@ -8,6 +8,7 @@ apiVersion: v1
 kind: PersistentVolumeClaim
 metadata:
   name: io-onboarding-pa-api-postgres
+  namespace: onboarding
 spec:
   accessModes:
     - ReadWriteOnce

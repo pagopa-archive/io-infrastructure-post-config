@@ -315,6 +315,18 @@ helm template nginx-ingress \
 
 >More info about the nginx standard installation can be found on the [official nginx ingress website](https://kubernetes.github.io/ingress-nginx/deploy/).
 
+### Create Kubernetes roles and map Azure groups
+
+One or more Active Directory groups should have already been created through [Terraform](https://github.com/teamdigitale/io-infrastructure-live). It's time to create some Kubernetes roles and map them to the groups created.
+
+* Open the [dev-azure-aad-cluster-roles.yaml file](system/dev-azure-aad-cluster-roles.yaml) and make sure the group names are up to date. Groups names (IDs) can be found in the Azure GUI under Azure Active Directory -> Groups -> Name of the group -> Overview
+
+* Apply the roles and role bindings
+
+```shell
+kubectl apply -f system/dev-azure-aad-cluster-roles.yaml
+```
+
 ## Deploy Azure Storage PersistentVolumeClaim (PVCs) for IO services
 
 PVCs for IO services are defined outside the helm-charts to avoid their deletion, while a chart gets removed for maintenance, or simply for human errors.
@@ -354,7 +366,7 @@ helm --tls --tiller-namespace tiller ls
 To deploy an IO service
 
 ```shell
-helm install --tls --tiller-namespace tiller [-f configs/CONFIG_NAME.yaml] [-n DEPLOYMENT_NAME] {NAME_OF_YOUR_CHART}
+helm install --tls --tiller-namespace tiller [-n NAMESPACE] [-f configs/CONFIG_NAME.yaml] [-n DEPLOYMENT_NAME] {NAME_OF_YOUR_CHART}
 ```
 
 Where:
@@ -362,6 +374,8 @@ Where:
 * CONFIG_NAME is optional and it's one of the configurations in the configs folder. By default, the *development* environment configuration is applied by default. So, for *dev* environments no configurations should be specified.
 
 * DEPLOYMENT_NAME is optional, but strongly suggested. It represents an arbitrary name to give to the deployment (names can then be listed with `helm ls`, and used to reference charts in other helm commands)
+
+* NAMESPACE is the namespace where to install the chart. For example, onboarding for the io-onboarding-pa charts.
 
 * NAME_OF_YOUR_CHART is mandatory and corresponds to one of the folder names, each one representing the chart.
 
