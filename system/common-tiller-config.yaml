@@ -86,7 +86,7 @@ metadata:
 
 ---
 
-# Bind tiller ClusterRole to the onboaring namespace
+# Bind tiller ClusterRole to the onboarding namespace
 apiVersion: rbac.authorization.k8s.io/v1
 kind: RoleBinding
 metadata:
