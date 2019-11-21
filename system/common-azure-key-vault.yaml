@@ -6,3 +6,12 @@ metadata:
   name: default
   labels:
     azure-key-vault-env-injection: enabled
+
+---
+
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: onboarding
+  labels:
+    azure-key-vault-env-injection: enabled

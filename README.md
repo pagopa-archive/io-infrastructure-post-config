@@ -29,11 +29,9 @@ Each folder generally represents an IO service, except a few of them that instea
 
 * **configs** - helm configuration value files that extend the basic helm charts default values. Each file generally represents a deployment environment (i.e. dev, prod, ...)
 
-# Deploy Kubernetes Resources
-
-This readme explains how deploy and manage Kubernetes resources for the IO project.
-
 ## Prerequisites
+
+These are the tools and configurations you need to interact with a cluster:
 
 * Ask your System Administrator for a personal Azure account to access the existing deployment
 
@@ -41,9 +39,37 @@ This readme explains how deploy and manage Kubernetes resources for the IO proje
 
 * Install and setup [kubectl](https://kubernetes.io/docs/tasks/tools/install-kubectl/)
 
+* If you have access to multiple Azure accounts through the az CLI, make sure you're on the correct Azure subscription (`az account set -s YOUR-SUBSCRIPTION`). Then, download the K8S cluster configuration: `az aks get-credentials -n AKS_CLUSTER_NAME -g RESOURCE_GROUP`. The cluster configuration will be automatically downloaded on your local machine and merged with the rest of the kubernetes configurations you already have.
+
+    * To see your contexts: `kubectl config get-contexts`
+
+    * To use your context: `kubectl config user-context CONTEXT_NAME`
+
+More info [here](https://kubernetes-v1-4.github.io/docs/user-guide/kubectl/kubectl_config_use-context/)
+
+>NOTE: You can either ask the subscription id, the resource group and AKS cluster name to your administrator, or view it online at [portal.azure.com](portal.azure.com).
+
 * Install and setup the [helm client](https://helm.sh/docs/using_helm/#installing-helm)
 
 * Ask the Administrator for certificates to access the helm installation. To simplify the helm commands run time by time, you can copy the CA certificate, the client private key and the client certificate to a specific location, so they're automatically added:
+
+
+
+>NOTE: Although this is quite inconvenient, you'll still have the option to manually specify where the certificates are located at each helm call.
+
+* You're ready to go! Depending on the permissions you have, you should be able to see the available resources on the cluster, if any: `kubectl get pods [-n NAMESPACE]`, and the helm deployments (`helm ls`)
+
+### Helm deep-dive
+
+Helm client-side for IO setup deserves a special mention.
+
+Once the cluster is setup to use a dedicated namespace for Tiller, certificates and only establish TLS connections, you'll need to run each helm command in the following way:
+
+```shell
+helm ls --tiller namespace --tls --tls-cert PATH_TO_CLIENT_CERT --tls-key PATH_TO_CLIENT_KEY --tls-ca-cert PATH_TO_CA_CERT
+```
+
+Life can be easier than that! You may simply choose to copy the three files required in the default helm configuration directory (~/.helm):
 
 ```shell
 $ cp ca.cert.pem $(helm home)/ca.pem
@@ -51,36 +77,163 @@ $ cp helm.cert.pem $(helm home)/cert.pem
 $ cp helm.key.pem $(helm home)/key.pem
 ```
 
-Although this is quite inconvenient, you still have the option to manually specify where the certificates are located at each helm call, for example:
+Then run:
 
 ```shell
-helm ls --tiller-namespace tiller --tls --tls-ca-cert ca.cert.pem --tiller-tls-cert helm.cert.pem --tiller-tls-key helm.key.pem
+helm ls --tiller-namespace tiller --tls
 ```
 
-* Make sure you're on the correct azure subscription (`az account set -s YOUR-SUBSCRIPTION`)
+While this works well for a single cluster, things may become a little bit more complicate if you need to manage more than a single cluster. Following is reported a workaround (original idea comes from [this interesting article](https://medium.com/nuvo-group-tech/configure-helm-tls-communication-with-multiple-kubernetes-clusters-5e58674352e2) article).
 
->NOTE: You can either ask your subscription id to your administrator or view it online from [portal.azure.com](portal.azure.com).
+* Create this directory structure:
 
-6. Download the K8S cluster configuration: if you're a user of an already existing cluster download the credentials with your own Azure username: `az aks get-credentials -n AKS_CLUSTER_NAME -g RESOURCE_GROUP`. Otherwise, if you've just provisioned the k8s cluster and it's the very first time you are accessing it, download the credentials using the admin credentials: `az aks get-credentials -n AKS_CLUSTER_NAME -g RESOURCE_GROUP --admin`); then, proceed to the next section .
+```shell
+.helm
+    |
+    tls
+       |
+       name-of-cluster-1-as-appears-in-kubectl-config-get-contexts
+                |
+                ca.pem
+                cert.pem
+                key.pem
+       name-of-cluster-2-as-appears-in-kubectl-config-get-contexts
+                |
+                ca.pem
+                cert.pem
+                key.pem
+```
 
->NOTE: You can either ask your resource group and AKS cluster name to your administrator or view it online at [portal.azure.com](portal.azure.com).
+Then, add to your *.bash_profile* or *.bash_rc* the following aliases
 
-7. You may have more than one cluster configuration on your computer.
+```shell
+function get_kubectl_context() {
+  echo $(kubectl config get-contexts | grep '*' | awk '{print $3}')
+}
 
-* To see your contexts: `kubectl config get-contexts`
-* To use your context: `kubectl config user-context CONTEXT_NAME`
+function helmet() {
+  helm "$@" $(tls)
+}
 
-  More info [here](https://kubernetes-v1-4.github.io/docs/user-guide/kubectl/kubectl_config_use-context/)
+alias tls='echo -n "--tiller-namespace tiller --tls --tls-cert $(helm home)/tls/$(get_kubectl_context)/cert.pem --tls-key $(helm home)/tls/$(get_kubectl_context)/key.pem --tls-ca-cert $(helm home)/tls/$(get_kubectl_context)/ca.pem"'
+```
 
-8. At this point you should be able to see the available PODs on the cluster, if any: `kubectl get pods`, and the helm deployments, if any and if helm is installed (`helm ls`). See further instructions below if it's not.
+So, now accessing the clusters with the right credentials and parameters will become easy as `helmet ls`
 
->NOTE: Your helm client may not be in sync with the Tiller version installed on the server. In these case you can run *helm init --upgrade* to synchronize the two versions.
+## Deploy Azure Storage PersistentVolumeClaim (PVCs) for IO services
 
-## Deploy system services
+PVCs for IO services are defined outside the helm-charts to avoid their deletion while a chart gets removed for maintenance, or simply for human errors.
+PVC definitions can be found in the *storage* folder. Each PVC is prefixed with the name of the chart that makes use of it, and should be created before installing the corresponding chart.
 
-Following, are the instructions to deploy the system services needed by all IO applications to work.
+To create a PVC, run
 
-> **WARNING:** The following commands should be generally run once, while setting up the cluster the first time. Make sure this is your case before proceeding. If you run them anyway, nothing bad should happen, since all of them should be idempotent.
+```shell
+kubectl apply -f storage/SERVICE_NAME.yaml
+```
+
+PVCs can also be addded all at once, running
+
+```shell
+kubectl apply -f storage
+```
+
+When no longer needed, PVCs can be either directly deleted or removed passing their yaml file. For example:
+
+```shell
+kubectl delete -f storage/SERVICE_NAME.yaml
+
+# OR
+
+kubectl delete pvc XXX
+```
+
+PVCs have generally been set with a retention policy, meaning the related persistent volume (PV) does not get deleted automatically upon PVC deletion. To delete unused PVs (marked in `kubectl get pv` as *Released*) you can run:
+
+```shell
+kubectl delete pv XXX
+```
+
+## Deploy generic resources and services
+
+IO services are packaged using helm charts.
+Each helm chart configures one or more of the following services:
+
+* Deployments
+
+* Services and load balancers
+
+* Nginx ingress rules (if any)
+
+* Certificate requests (if any)
+
+>NOTE: for security reasons, charts can only be deployed either in the default or in dedicated namespaces, but not in the system namespace.
+
+To list existing deployments, run:
+
+```shell
+helm --tls --tiller-namespace tiller ls
+```
+
+To deploy an IO service:
+
+```shell
+helm install --tls --tiller-namespace tiller [-n NAMESPACE] [-f configs/CONFIG_NAME.yaml] [-n DEPLOYMENT_NAME] {NAME_OF_YOUR_CHART}
+```
+
+Where:
+
+* CONFIG_NAME is optional and it's one of the configurations in the configs folder. By default, the *development* environment configuration is applied by default. So, for *dev* environments no configurations should be specified.
+
+* DEPLOYMENT_NAME is optional, but strongly suggested. It represents an arbitrary name to give to the deployment (names can then be listed with `helm ls`, and used to reference charts in other helm commands)
+
+* NAMESPACE is the namespace where to install the chart. For example, onboarding for the io-onboarding-pa charts.
+
+* NAME_OF_YOUR_CHART is mandatory and corresponds to one of the folder names, each one representing the chart.
+
+For example
+
+```shell
+helm install --tls --tiller-namespace tiller -n app-backend app-backend
+```
+
+To deploy the same app-backend app, applying the production configuration
+
+```shell
+helm install --tls --tiller-namespace tiller -f configs/prod.yaml -n app-backend app-backend
+```
+
+To remove an existing IO service
+
+```shell
+helm delete --tls --tiller-namespace tiller --purge [DEPLOYMENT_NAME]
+```
+
+### Kubernetes secrets
+
+The majority of the charts need some secrets to be populated in the Azure Keyvault, before being deployed. Some exceptions apply to charts that still do not support this kind of synchronization.
+Secrets need of course to follow specific name nomenclatures that match what's defined in the charts. Refer to the chart value files and readmes to know what secrets need to be defined before installing the chart.
+
+Secrets usually are in the format: *k8s-chart_name-secret-secret_name*.
+
+### The special case of pagopa-proxy
+
+*pagopa-proxy* needs to be deployed in a very specific way. For more info on its deployment, take a look at the [pagopa-proxy readme](pagopa-proxy/README.md).
+
+## First-time setup
+
+The paragraph reports the instructions to go through the setup of a brand new cluster, just setup on Azure. Essentially, these are system configuration that are needed by all other components (IO services) to work. The guide assumes that the cluster has just been provisioned on Azure an no other actions have been taken.
+
+### Download the cluster admin kubernetes configuration file
+
+Before RBAC access gets configured, a generic administrator should access the cluster using the Kubernetes admin configuration file. The file can be downloaded by anyone who has an Azure role of Kubernetes administrator (and above). To download it
+
+```shell
+az aks get-credentials -n AKS_CLUSTER_NAME -g RESOURCE_GROUP --admin
+```
+
+You should now be able to access all the cluster resources in all namespaces using kubectl. You con now proceed with the system configurations.
+
+> **WARNING:** The following commands should generally run once, while setting up the cluster the first time. Make sure this is your case before proceeding. If you run them anyway, nothing bad should happen, since all of them should be idempotent.
 
 All system related configurations can be found in the system folder. Files are divided in three categories (indicated by a name prefix):
 
@@ -94,34 +247,15 @@ Following configurations are based on the dev environment. They can be replicate
 
 ### Storage and data persistence
 
-By default Azure uses two *storage classes* to provide data persistence functionalities: *default* and *managed-premium*. These are automatically configured by Azure at setup time. By default, both classes do not support dynamic storage resizes, and their reclaim policy is set to *Delete*, which would cause data to be deleted when a persistent volume claim gets deleted.
+Two *Azure disk custom storage classes* implement the features provided by the default storage classes, while also enabling dynamic storage resizes and setting the reclaim policy to *Retain*, thus preserving the Azure managed disks, even when a PVC gets deleted.
 
-#### Deploy the Azure Disk custom Storage Class
-
-The *Azure disk custom storage class* implements all the features provided by both default storage classes, while also enabling dynamic storage resizes and setting the reclaim policy to *Retain*, thus preserving managed disks, even when a PVC gets deleted.
-
-To deploy the custom storage class, run:
+To deploy the custom storage classes, run:
 
 ```shell
-kubectl apply -f system/common-azure-disk-sc-custom.yaml
+kubectl apply -f system/common-azure-sc.yaml
 ```
 
->Note: The limitation of disk type storage classes is that disks can be attached only to one pod at the time.
-
-#### Deploy Azure Files Storage Class and related role-based access control (RBAC)
-
-The Azure Files storage class is slower than the Azure disk storage classes mentioned above but it can be sometimes useful when multiple containers need to access the same disk and share files.
-Since some services may take advantage of it, it's strongly suggested to load its drivers in the cluster.
-
-To load the Azure file storage class, run:
-
-```shell
-kubectl apply -f system/common-azure-file-sc.yaml
-```
-
-In order to be able to use the Azure files storage class, both a ClusterRole and a ClusterRoleBinding need to be created.
-
-To do so, run:
+To correctly use the storage classes created, both a ClusterRole and a ClusterRoleBinding need to be created:
 
 ```shell
 kubectl apply -f system/common-azure-pvc-roles.yaml
@@ -131,15 +265,9 @@ kubectl apply -f system/common-azure-pvc-roles.yaml
 
 Tiller (the server-side component of helm) is required to install any other component.
 
-Different things need to be done to secure the Tiller installation:
-
-1) Activate TLS-based communication between the helm-client and Tiller. This provides mutual authentication and encryption, and prevents anyone from using helm without authenticating, even from inside the cluster (i.e. one of the cluster pods).
-
-2) Install Tiller in a dedicated namespace and give its service account specific permissions to only operate in specific namespaces (i.e. not in kube-system!)
-
 #### Create certificates for Helm/Tiller
 
-If you or other administrators have already generated some certificates for helm/tiller, this paragraph can be skipped. Otherwise, do the following:
+Activate TLS-based communication between the helm-client and Tiller. This provides mutual authentication and encryption, and prevents anyone from using helm without authenticating, even from inside the cluster (i.e. one of the cluster pods).
 
 ```shell
 # Generate CA key
@@ -188,13 +316,11 @@ openssl x509 -req -days 365 \
 
 #### Tiller namespace, Role, ClusterRoles and RoleBindings
 
-A dedicated yaml file has already been created for this goal. Double check in the file what namespaces and privileges have been granted to Tiller. Then, run:
+Install Tiller in a dedicated namespace and give its service account specific permissions to only operate in some specific namespaces (i.e. not in kube-system!). Double check in the [system/common-tiller-config.yaml file](system/common-tiller-config.yaml) file what namespaces and privileges have been granted to Tiller. Then, run:
 
 ```shell
 kubectl apply -f system/common-tiller-config.yaml
 ```
-
-#### Install Tiller
 
 Finally, Tiller can be installed running:
 
@@ -210,29 +336,13 @@ helm init \
     --history-max 200
 ```
 
-#### Configure the helm client
-
-For a more convenient use of the helm client, copy the CA certificate, the client certificate and the client key in your helm home directory:
-
-```shell
-cp ca.cert.pem $(helm home)/ca.pem
-cp client.cert.pem $(helm home)/cert.pem
-cp client.key.pem $(helm home)/key.pem
-```
-
-From this moment, helm commands can be simply invoked doing (example with *helm ls*):
-
-```shell
-helm ls --tls --tiller-namespace tiller
-```
-
 ### Enable synchronization of Azure Keyvault secrets with Kubernetes secrets
 
 It's strongly recommended to make Kubernetes retrieve secrets from the Azure Keyvault, instead of manually creating and editing secrets directly in Kubernetes. This approach is safer and allows an easier maintenance of the Kubernetes cluster.
 
-The secrets synchronization and container injection is realized using [this component](https://github.com/SparebankenVest/azure-key-vault-to-kubernetes).
+The secrets synchronization and container injection is realized using the [Azure Kevault to Kubernetes plugin](https://github.com/SparebankenVest/azure-key-vault-to-kubernetes).
 
-Each chart already contains an *azure-key-vault-secrets.yaml* file that creates
+Most of the charts contain a *azure-key-vault-secrets.yaml* file that creates
 
 * A Kubernetes empty secret
 
@@ -240,28 +350,34 @@ Each chart already contains an *azure-key-vault-secrets.yaml* file that creates
 
 * Moreover, environment variables are imported in the *deployment.yaml* files with the value format `name-of-the-variable@azurekeyvault`
 
-#### Installation
+To install the Azure Keyvault Secrets plugin:
 
 ```shell
+# Create a dedicated namespace
 kubectl create namespace azurekeyvaultsecrets
 
+# Add the repo and update local indexes
 helm repo add spv-charts http://charts.spvapi.no
 helm repo update
 
+# Fetch and untar the env-injector chart
 helm fetch spv-charts/azure-key-vault-env-injector --version 0.1.4 --untar
 
+# Render the template and install the env-injector
 helm template azure-key-vault-env-injector \
     -n key-vault-env-injector \
     --namespace azurekeyvaultsecrets \
     --set installCrd=false \
-    | kubectl apply -n -f -
+    | kubectl apply -n azurekeyvaultsecrets -f -
 
+# Fetch and untar the controller chart
 helm fetch spv-charts/azure-key-vault-controller --version 0.1.22 --untar
 
+# Render the template and install the env-controller
 helm template azure-key-vault-controller \
     -n key-vault-controller \
     --namespace azurekeyvaultsecrets \
-    | kubectl apply -n -f -
+    | kubectl apply -n azurekeyvaultsecrets -f -
 ```
 
 #### Enable automatic environment variables injection
@@ -286,7 +402,7 @@ kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/relea
 
 >More info can be found on the [official cert-manager website](https://docs.cert-manager.io/en/latest/getting-started/install/kubernetes.html#steps).
 
-### Apply cert-manager issuers
+#### Apply cert-manager issuers
 
 To integrate the cert-manager with the *letsencrypt certificate issuer*, run:
 
@@ -294,7 +410,7 @@ To integrate the cert-manager with the *letsencrypt certificate issuer*, run:
 kubectl apply -f system/common-cert-manager-issuers.yaml
 ```
 
-### Deploy the ingress controller
+### Deploy the Nginx ingress controller
 
 The nginx ingress controller works as a reverse proxy, routing requests from the Internet to the IO applications living in the cluster. All applications DNS names are resolved to a single, public static IP address, that must be pre-provisioned on Azure.
 Before proceeding, make sure you have allocated the public, static IP address using Terraform, and that the same address is reflected in the `nginx-ingress-custom.yaml` file.
@@ -319,93 +435,13 @@ helm template nginx-ingress \
 
 One or more Active Directory groups should have already been created through [Terraform](https://github.com/teamdigitale/io-infrastructure-live). It's time to create some Kubernetes roles and map them to the groups created.
 
-* Open the [dev-azure-aad-cluster-roles.yaml file](system/dev-azure-aad-cluster-roles.yaml) and make sure the group names are up to date. Groups names (IDs) can be found in the Azure GUI under Azure Active Directory -> Groups -> Name of the group -> Overview
+* Open the *dev-azure-aad-cluster-roles.yaml* file and make sure the group names are up to date. Groups names (IDs) can be found in the Azure GUI under Azure Active Directory -> Groups -> Name of the group -> Overview
 
 * Apply the roles and role bindings
 
 ```shell
 kubectl apply -f system/dev-azure-aad-cluster-roles.yaml
 ```
-
-## Deploy Azure Storage PersistentVolumeClaim (PVCs) for IO services
-
-PVCs for IO services are defined outside the helm-charts to avoid their deletion, while a chart gets removed for maintenance, or simply for human errors.
-PVC definitions can be found in the *storage* folder. Each PVC is prefixed with the name of the chart that makes use of it, and should be created before installing the corresponding chart.
-
-To create a PVC for a service, run
-
-```shell
-kubectl apply -f storage/SERVICE_NAME.yaml
-```
-
-PVCs can also be addded all at once, running
-
-```shell
-kubectl apply -f storage
-```
-
-## Deploy generic resources and services
-
-IO services are packaged using helm charts.
-Each helm chart configures one or more of the following services:
-
-* Deployments
-
-* Services and load balancers
-
-* Nginx ingress rules (if any)
-
-* Certificate requests (if any)
-
-To list existing deployments
-
-```shell
-helm --tls --tiller-namespace tiller ls
-```
-
-To deploy an IO service
-
-```shell
-helm install --tls --tiller-namespace tiller [-n NAMESPACE] [-f configs/CONFIG_NAME.yaml] [-n DEPLOYMENT_NAME] {NAME_OF_YOUR_CHART}
-```
-
-Where:
-
-* CONFIG_NAME is optional and it's one of the configurations in the configs folder. By default, the *development* environment configuration is applied by default. So, for *dev* environments no configurations should be specified.
-
-* DEPLOYMENT_NAME is optional, but strongly suggested. It represents an arbitrary name to give to the deployment (names can then be listed with `helm ls`, and used to reference charts in other helm commands)
-
-* NAMESPACE is the namespace where to install the chart. For example, onboarding for the io-onboarding-pa charts.
-
-* NAME_OF_YOUR_CHART is mandatory and corresponds to one of the folder names, each one representing the chart.
-
-For example
-
-```shell
-helm install --tls --tiller-namespace tiller -n app-backend app-backend
-```
-
-Or, to deploy the same app-backend app, applying the production configuration
-
-```shell
-helm install --tls --tiller-namespace tiller -f configs/prod.yaml -n app-backend app-backend
-```
-
-To remove an existing IO service
-
-```shell
-helm delete --tls --tiller-namespace tiller --purge [DEPLOYMENT_NAME]
-```
-
-### Kubernetes secrets
-
-The majority of the charts need some secrets to be populated in the Azure Keyvault, before being deployed. These secrets need to have a specific name that matches what's defined in the chart. Refer to the chart value files and readmes to know what secrets need to be defined before installing the chart.
-
-Secrets usually are in the format: *k8s-chart_name-secret-secret_name*.
-
-### The special case of pagopa-proxy
-
-*pagopa-proxy* needs to be deployed in a very specific way. For more info on its deployment, take a look at the [pagopa-proxy readme](pagopa-proxy/README.md).
 
 ## How to contribute
 
@@ -420,3 +456,4 @@ This program is free software: you can redistribute it and/or modify it under th
 This program is distributed in the hope that it will be useful, but WITHOUT ANY WARRANTY; without even the implied warranty of MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the GNU Affero General Public License for more details.
 
 You should have received a copy of the GNU Affero General Public License along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ot, see <https://www.gnu.org/licenses/>.
