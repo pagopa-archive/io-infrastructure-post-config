@@ -7,7 +7,7 @@ global:
 
 appBackend:
   env:
-    api_url: "https://io-prod-apim-01.azure-api.net/api/v1"
+    api_url: "https://io-prod-fn-2-app.azurewebsites.net/api/v1"
     azure_nh_hub_name: "io-prod-nh-nh-01"
     node_env: "production"
     redis_url: "io-prod-redis-cache-01.redis.cache.windows.net"
@@ -17,11 +17,11 @@ appBackend:
   ingress:
     hosts:
       - app-backend.prod.io.italia.it
-      - app-backend.io.italia.it
+      # - app-backend.io.italia.it
     tls:
       - hosts:
           - app-backend.prod.io.italia.it
-          - app-backend.io.italia.it
+          # - app-backend.io.italia.it
         secretName: app-backend-tls
 
 # APP-BACKEND - end
@@ -32,11 +32,11 @@ spidTestenv:
   ingress:
     hosts:
       - spid-testenv.prod.io.italia.it
-      - spid-testenv.io.italia.it
+      # - spid-testenv.io.italia.it
     tls:
       - hosts:
           - spid-testenv.prod.io.italia.it
-          - spid-testenv.io.italia.it
+          # - spid-testenv.io.italia.it
         secretName: spid-testenv-tls
 
 # SPIND-TESTENV - end
@@ -108,3 +108,25 @@ developerPortalBackend:
         secretName: developer-portal-backend-prod-tls
 
 # DEVELOPER-PORTAL-BACKEND - end
+
+# DEVELOPER-PORTAL-FRONTEND - start
+
+developerPortal:
+  env:
+    io_developer_portal_port: 80
+    io_developer_portal_backend: https://backend.developer.io.italia.it
+    io_developer_portal_apim_base_url: https://api.io.italia.it/api/v1
+    io_developer_portal_base_url: /
+    io_developer_portal_public_path: /
+
+  ingress:
+    hosts:
+      - developer.prod.io.italia.it
+      # - developer.io.italia.it
+    tls:
+      - hosts:
+          - developer.prod.io.italia.it
+          # - developer.io.italia.it
+        secretName: developer-portal-frontend-prod-tls
+
+# DEVELOPER-PORTAL-FRONTEND - end

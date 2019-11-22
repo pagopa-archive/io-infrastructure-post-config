@@ -394,6 +394,8 @@ To deploy the cert-manager, run:
 
 ```shell
 kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.11.0/cert-manager.yaml
+
+kubectl label namespace cert-manager cert-manager.io/disable-validation=true
 ```
 
 >More info can be found on the [official cert-manager website](https://docs.cert-manager.io/en/latest/getting-started/install/kubernetes.html#steps).
@@ -447,27 +449,6 @@ helm template ingress-azure \
   --set kubernetes.watchNamespace=default \
   --set aksClusterConfiguration.apiServerAddress=$apiServerAddress | kubectl apply -n ingress-azure -f -
 ```
-
-### Deploy the Nginx ingress controller
-
-The nginx ingress controller works as a reverse proxy, routing requests from the Internet to the IO applications living in the cluster. All applications DNS names are resolved to a single, public static IP address, that must be pre-provisioned on Azure.
-Before proceeding, make sure you have allocated the public, static IP address using Terraform, and that the same address is reflected in the `nginx-ingress-custom.yaml` file.
-
-Then, create a name space for the `nxignx-ingress`:
-
-```shell
-kubectl create namespace ingress
-
-helm fetch stable nginx-ingress --version 1.24.7 --untar
-
-helm template nginx-ingress \
-    -n ingress \
-    --namespace ingress \
-    -f system/dev-nginx-ingress-custom.yaml \
-    | kubectl apply -n ingress -f -
-```
-
->More info about the nginx standard installation can be found on the [official nginx ingress website](https://kubernetes.github.io/ingress-nginx/deploy/).
 
 ### Create Kubernetes roles and map Azure groups
 

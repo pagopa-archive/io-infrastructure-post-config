@@ -31,7 +31,7 @@ developerPortal:
       appgw.ingress.kubernetes.io/ssl-redirect: "true"
       kubernetes.io/tls-acme: "true"
       cert-manager.io/cluster-issuer: "letsencrypt-prod"
-      cert-manager.io/acme-challenge-type: http01
+      cert-manager.io/acme-challenge-type: "http01"
     path: /
     hosts:
       - developer.dev.io.italia.it
