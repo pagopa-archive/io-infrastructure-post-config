@@ -6,4 +6,4 @@ name: app-backend
 description: The IO mobile application backend.
 
 version: 0.1.2
-appVersion: "2.5.0"
+appVersion: "2.5.1"

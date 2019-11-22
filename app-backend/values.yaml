@@ -18,7 +18,7 @@ appBackend:
   images:
     appBackend:
       repository: docker.io/teamdigitale/italia-backend
-      tag: v2.5.0
+      tag: v2.5.1
       pullPolicy: IfNotPresent
 
   env:
