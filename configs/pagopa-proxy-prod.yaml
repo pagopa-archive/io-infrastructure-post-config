@@ -20,6 +20,7 @@ pagopaProxy:
   secrets:
     kubernetesSecretName: pagopa-proxy-prod-secrets
     azureSecretNamePrefix: k8s-pagopa-proxy-prod-secrets
+    kubernetesPagopaCaChainCertsSecretName: pagopa-proxy-prod-pagopa-ca-chain-certs
 
   configs:
     pagopaProxyNginxTls:

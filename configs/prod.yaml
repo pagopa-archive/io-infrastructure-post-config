@@ -130,3 +130,24 @@ developerPortal:
         secretName: developer-portal-frontend-prod-tls
 
 # DEVELOPER-PORTAL-FRONTEND - end
+
+# PAGOPA-PROXY - start
+
+pagopaProxy:
+  env:
+    redis_db_url: "io-prod-redis-cache-01.redis.cache.windows.net"
+
+  secrets:
+    azureKeyvaultName: io-prod-keyvault
+
+  ingress:
+    hosts:
+      - pagopa-test.prod.io.italia.it
+      # - pagopa-test.io.italia.it
+    tls:
+      - hosts:
+          - pagopa-test.prod.io.italia.it
+          # - pagopa-test.io.italia.it
+        secretName: pagopa-proxy-test-io-certs-tls
+
+# PAGOPA-PROXY - end
