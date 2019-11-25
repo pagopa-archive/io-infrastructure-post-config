@@ -18,6 +18,7 @@ ioOnboardingPa:
     io_onboarding_pa_api_port: 443
     io_onboarding_pa_show_fake_idp: 1
     io_onboarding_pa_is_mock_env: 0
+    io_onboarding_pa_session_token_domain: .dev.io.italia.it
 
   services:
     http:
