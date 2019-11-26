@@ -6,18 +6,16 @@ The repository contains the Kubernetes configurations used to configure IO resou
 
 More informations about the IO can be found on the [Digital Transformation Team website](https://teamdigitale.governo.it/en/projects/digital-citizenship.htm)
 
+## How to use this repository and its tools
+
+The repository contains a collection of Kubernetes configuration files to provision some of the IO services on top of an existing Kubernetes cluster. The guide assumes a repository has been already provisioned using some [Terraform scripts](https://github.com/teamdigitale/io-infrastructure-live).
+
 ## Tools references
 
 The repository makes mainly use of the following tools:
 
 * [Kubernetes](https://kubernetes.io/)
-* [Helm](https://helm.sh/)
-
-## How to use this repository and its tools
-
-The repository is a collection of scripts to run in the IO infrastructure to configure various types of resources (i.e. VMs, containers, ...), previously provisioned using some [Terraform scripts](https://github.com/teamdigitale/io-infrastructure-live).
-
-To configure the IO infrastructure you should have full access to it with administrative privileges.
+* [Helm 2.x](https://helm.sh/)
 
 ## Folder structure
 
@@ -52,8 +50,6 @@ More info [here](https://kubernetes-v1-4.github.io/docs/user-guide/kubectl/kubec
 * Install and setup the [helm client](https://helm.sh/docs/using_helm/#installing-helm)
 
 * Ask the Administrator for certificates to access the helm installation. To simplify the helm commands run time by time, you can copy the CA certificate, the client private key and the client certificate to a specific location, so they're automatically added:
-
-
 
 >NOTE: Although this is quite inconvenient, you'll still have the option to manually specify where the certificates are located at each helm call.
 
@@ -398,6 +394,8 @@ To deploy the cert-manager, run:
 
 ```shell
 kubectl apply --validate=false -f https://github.com/jetstack/cert-manager/releases/download/v0.11.0/cert-manager.yaml
+
+kubectl label namespace cert-manager cert-manager.io/disable-validation=true
 ```
 
 >More info can be found on the [official cert-manager website](https://docs.cert-manager.io/en/latest/getting-started/install/kubernetes.html#steps).
@@ -410,26 +408,47 @@ To integrate the cert-manager with the *letsencrypt certificate issuer*, run:
 kubectl apply -f system/common-cert-manager-issuers.yaml
 ```
 
-### Deploy the Nginx ingress controller
+### Deploy Application Gateway Ingress Controller (AGIC)
 
-The nginx ingress controller works as a reverse proxy, routing requests from the Internet to the IO applications living in the cluster. All applications DNS names are resolved to a single, public static IP address, that must be pre-provisioned on Azure.
-Before proceeding, make sure you have allocated the public, static IP address using Terraform, and that the same address is reflected in the `nginx-ingress-custom.yaml` file.
+IO ingress functionalities are realized through the integration with the Azure Application Gateway with a component called [Application Gateway Ingress Controller (AGIC)](https://azure.github.io/application-gateway-kubernetes-ingress/). Integrating with the Application Gateway allows a better security, for example against volumetric attacks.
 
-Then, create a name space for the `nxignx-ingress`:
+The following steps allow to configure the AGIC component on a brand new Kubernetes cluster and assume that a compliant Application Gateway has been already provisioned with [Terraform](https://github.com/teamdigitale/io-infrastructure-live).
+
+>NOTE: substitute any reference of dev with prod as needed (if you're configuring a production environment)
 
 ```shell
-kubectl create namespace ingress
+# Create a dedicated namespace
+kubectl create namespace ingress-azure
 
-helm fetch stable nginx-ingress --version 1.24.7 --untar
+# Add the AGIC helm repository and update the dependencies
+helm repo add application-gateway-kubernetes-ingress https://appgwingress.blob.core.windows.net/ingress-azure-helm-package/
+helm repo update
 
-helm template nginx-ingress \
-    -n ingress \
-    --namespace ingress \
-    -f system/dev-nginx-ingress-custom.yaml \
-    | kubectl apply -n ingress -f -
+# Fetch the AGIC chart locally
+helm fetch application-gateway-kubernetes-ingress/ingress-azure --version 1.0.0 --untar
+
+# Create a Service Principal and locally save its authentication info
+secretJson=$(az ad sp create-for-rbac --subscription ec285037-c673-4f58-b594-d7c480da4e8b --name io-dev-sp-k8s-01-agw --sdk-auth | base64 -b 0)
+
+# Locally save the Kubernetes cluster API server address
+apiServerAddress=$(az aks show -n io-dev-aks-k8s-01 -g io-dev-rg --query fqdn | sed 's/"//g')
+
+# Install the Application Gateway Ingress Controller
+helm template ingress-azure \
+  --name ingress-azure \
+  --namespace ingress-azure \
+  --set appgw.name=io-dev-ag-to-k8s-01 \
+  --set appgw.resourceGroup=io-dev-rg \
+  --set appgw.subscriptionId=ec285037-c673-4f58-b594-d7c480da4e8b \
+  --set appgw.shared=false \
+  --set appgw.usePrivateIP=false \
+  --set armAuth.type=servicePrincipal \
+  --set armAuth.secretJSON=$secretJson \
+  --set rbac.enabled=true \
+  --set verbosityLevel=3 \
+  --set kubernetes.watchNamespace=default \
+  --set aksClusterConfiguration.apiServerAddress=$apiServerAddress | kubectl apply -n ingress-azure -f -
 ```
-
->More info about the nginx standard installation can be found on the [official nginx ingress website](https://kubernetes.github.io/ingress-nginx/deploy/).
 
 ### Create Kubernetes roles and map Azure groups
 

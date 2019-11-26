@@ -60,6 +60,9 @@ pagopaProxy:
       httpPort:
         servicePort: 80
         containerPort: 80
+      httpsPort:
+        servicePort: 443
+        containerPort: 443
 
   configs:
     pagopaProxyNginxTls:
@@ -86,6 +89,26 @@ pagopaProxy:
               proxy_ssl_session_reuse       on;
             }
           }
+
+          server {
+            listen 443 ssl;
+
+            if ($ssl_client_verify != "SUCCESS") { return 403; }
+            ssl_client_certificate /etc/nginx/pagopa_ca_certs/ca.crt;
+            ssl_verify_depth 2;
+            ssl_verify_client on;
+
+            ssl_certificate     /etc/nginx/io_certs/tls.crt;
+            ssl_certificate_key /etc/nginx/io_certs/tls.key;
+
+            location / {
+              proxy_set_header Host $host;
+              proxy_set_header X-Real-IP $remote_addr;
+              proxy_set_header SSL_Client $ssl_client_s_dn;
+              proxy_set_header SSL_Client_Verify $ssl_client_verify;
+              proxy_pass http://localhost:8080;
+            }
+          }
       pagopaCaCertsConfig:
         volumeMountSettings:
           secretName: pagopa-proxy-test-pagopa-ca-chain-certs
@@ -110,22 +133,19 @@ pagopaProxy:
   ingress:
     enabled: true
     annotations:
-      kubernetes.io/ingress.class: "nginx"
-      # Force HTTPs
-      ingress.kubernetes.io/ssl-redirect: "true"
-      # Enable client certificate authentication
-      nginx.ingress.kubernetes.io/auth-tls-verify-client: "on"
-      # Validate both the client certificate and the intermediate certificate
-      nginx.ingress.kubernetes.io/auth-tls-verify-depth: "2"
-      # The secret containing the trusted ca certificates
-      nginx.ingress.kubernetes.io/auth-tls-secret: "default/pagopa-proxy-test-pagopa-ca-chain-certs"
+      kubernetes.io/ingress.class: "azure/application-gateway"
+      appgw.ingress.kubernetes.io/backend-protocol: "https"
+      appgw.ingress.kubernetes.io/ssl-redirect: "true"
+      kubernetes.io/tls-acme: "true"
+      cert-manager.io/cluster-issuer: "letsencrypt-prod"
+      cert-manager.io/acme-challenge-type: "http01"
     path: /
     hosts:
       - pagopa-test.dev.io.italia.it
     tls:
       - hosts:
           - pagopa-test.dev.io.italia.it
-        secretName: pagopa-proxy-test-io-certs
+        secretName: pagopa-proxy-test-io-certs-tls
 
   resources: {}
     # To set limits remove the curly brackets

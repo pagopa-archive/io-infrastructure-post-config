@@ -27,7 +27,7 @@ spec:
     - selector: {}
       http01:
         ingress:
-          class: nginx
+          class: azure/application-gateway
 ---
 #
 # Let's encrypt (production)
@@ -52,4 +52,4 @@ spec:
     - selector: {}
       http01:
         ingress:
-          class: nginx
+          class: azure/application-gateway

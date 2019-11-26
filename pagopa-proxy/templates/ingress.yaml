@@ -1,8 +1,8 @@
 ---
 
 {{- if .Values.pagopaProxy.ingress.enabled -}}
-{{- $fullName := include "pagopa-proxy.fullname" . -}}
-{{- $servicePort := .Values.pagopaProxy.services.pagopaProxy.httpPort.servicePort -}}
+{{- $fullName := include "pagopa-proxy.fullname" . -}}-https
+{{- $servicePort := .Values.pagopaProxy.services.pagopaProxyNginxTls.httpsPort.servicePort -}}
 {{- $ingressPath := .Values.pagopaProxy.ingress.path -}}
 apiVersion: extensions/v1beta1
 kind: Ingress

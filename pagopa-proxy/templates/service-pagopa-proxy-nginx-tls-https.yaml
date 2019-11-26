@@ -1,0 +1,20 @@
+---
+
+apiVersion: v1
+
+kind: Service
+metadata:
+  name: {{ template "pagopa-proxy.fullname" . }}-https
+  labels:
+    app: {{ template "pagopa-proxy.name" . }}
+    chart: {{ template "pagopa-proxy.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.pagopaProxy.services.pagopaProxyNginxTls.httpsPort.type }}
+  ports:
+    - port: {{ .Values.pagopaProxy.services.pagopaProxyNginxTls.httpsPort.servicePort }}
+      targetPort: {{ .Values.pagopaProxy.services.pagopaProxyNginxTls.httpsPort.containerPort }}
+  selector:
+    app: {{ template "pagopa-proxy.name" . }}
+    release: {{ .Release.Name }}

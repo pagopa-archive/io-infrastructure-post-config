@@ -16,7 +16,7 @@ Each environment (i.e. dev, prod) needs two versions of pagopa-proxy: one to com
 
 Following steps are needed, in order to deploy *pagopa-proxy*:
 
-* **Import IO TLS certificates in PEM format into the Azure Keyvault**, using the Azure GUI. The certificate and the key must be places one after the other, in PEM format in the same file. Refer to the overview section above for the name of the secret.
+* **Import IO TLS certificates in PEM format into the Azure Keyvault** using the Azure GUI. The certificate and the key must be placed one after the other, in PEM format, in the same file.
 
 The IO private/public certificates secret name is automatically derived from the chart, using  use the following format: *Values.pagopaProxy.secrets.azureSecretNamePrefix*-*pagopa-io-certs*
 
@@ -28,11 +28,11 @@ The IO private/public certificates secret name is automatically derived from the
     ```shell
     az keyvault secret set --vault-name YOUR_KEYVAULT_NAME --name AZURE_SECRET_NAME --file CA_CHAIN_FILE_NAME
     ```
-    The commands automatically formats the file and stores it in the Azure Keyvault.
+    The command automatically formats the file and stores it in the Azure Keyvault.
 
-The PagoPA CA chain certificate secret name is automatically derived from the chart, using  use the following format: * For : *Values.pagopaProxy.secrets.azureSecretNamePrefix*-*pagopa-ca-chain-certs*
+The PagoPA CA chain certificate secret name is automatically derived from the chart, using  use the following format: : *Values.pagopaProxy.secrets.azureSecretNamePrefix*-*pagopa-ca-chain-certs*
 
-* **Create all other secrets**: read the overview paragraph above to know the secrets needed and their names. Then create them in the Azure Keyvault from the GUI.
+* **Create all other secrets**: create an Azure Keyvault secret in Json format in the GUI.
 
 The other secret names are derived from the values specified in the chart variables, and are in the following format: *Values.pagopaProxy.secrets.azureSecretNamePrefix*-*Values.pagopaProxy.secrets.azureSecretNameSuffix*
 
