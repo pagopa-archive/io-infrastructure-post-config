@@ -446,7 +446,6 @@ helm template ingress-azure \
   --set armAuth.secretJSON=$secretJson \
   --set rbac.enabled=true \
   --set verbosityLevel=3 \
-  --set kubernetes.watchNamespace=default \
   --set aksClusterConfiguration.apiServerAddress=$apiServerAddress | kubectl apply -n ingress-azure -f -
 ```
 
