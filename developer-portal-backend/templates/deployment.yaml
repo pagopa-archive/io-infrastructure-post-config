@@ -67,6 +67,27 @@ spec:
               value: {{ $azureSecretName }}@azurekeyvault?{{ . }}
             {{- end }}
 
+          {{- with .Values.developerPortalBackend.probes.livenessProbe }}
+          livenessProbe:
+            httpGet:
+              path: {{ toYaml .httpGet.path }}
+              port: {{ toYaml .httpGet.port }}
+            initialDelaySeconds: {{ toYaml .initialDelaySeconds }}
+            timeoutSeconds: {{ toYaml .timeoutSeconds }}
+            periodSeconds: {{ toYaml .periodSeconds }}
+            failureThreshold: {{ toYaml .failureThreshold }}
+          {{- end }}
+          {{- with .Values.developerPortalBackend.probes.readinessProbe }}
+          readinessProbe:
+            httpGet:
+              path: {{ toYaml .httpGet.path }}
+              port: {{ toYaml .httpGet.port }}
+            initialDelaySeconds: {{ toYaml .initialDelaySeconds }}
+            timeoutSeconds: {{ toYaml .timeoutSeconds }}
+            periodSeconds: {{ toYaml .periodSeconds }}
+            failureThreshold: {{ toYaml .failureThreshold }}
+          {{- end }}
+
           ports:
             - name: backend-http
               containerPort: {{ .Values.developerPortalBackend.services.backendHttp.port }}
