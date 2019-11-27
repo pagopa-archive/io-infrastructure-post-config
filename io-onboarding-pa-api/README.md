@@ -1,24 +1,22 @@
 # IO Onboarding PA backend (API)
 
-This is the chart to install the backend services of the IO PA onboarding portal.
+This chart installs the backend services of the IO PA onboarding portal.
 
 ## Installation
 
 Some secrets need to be installed before being able to proceed with the chart installation. Postgres will be installed using its official helm-chart as a dependency of the main chart.
 
-### Create the IO onboarding PA API k8s secrets
+### Create the IO onboarding PA API secrets
 
-* Edit and apply the *io-onboarding-pa-api-secrets.yaml* file in this directory to create a local kubernetes secret.
+Some secrets need to be manually created in the Azure Keyvault before being able to install the chart. Once the chart is installed, an Azure Keyvault synchronizer will constantly keep the vault secrets monitored and it will make sure that the Kubernetes secrets remain in sync with the remote ones.
 
-```shell
-kubectl apply -f io-onboarding-pa-api/io-onboarding-pa-api-secrets.yaml
-```
+#### SPID certificates
 
->NOTE: the postgres official helm-chart still does not support the AzureKeyvaultSecrets plugin. This is the reason why a local secret still needs to be created.
+Import the SPID certificates (in PFX format) into the Azure Keyvault, using the Azure GUI. Name the secret *k8s-io-onboarding-pa-api-secrets-spid-certs*.
+ 
+### All other secrets
 
-### Import SPID certificates
-
-* Import SPID TLS certificates in PEM format into the Azure Keyvault, using the Azure GUI. The certificate and the key must be places one after the other, in PEM format in the same file. The name of the secret should be *k8s-io-onboarding-pa-api-secrets-spid-certs*.
+Create a secret in the Azure Keyvault named *k8s-io-onboarding-pa-api-secrets* with the following structure: `{"email-password": "YOUR_EMAIL_PASSWORD", "postgresql-password": "YOUR_POSTGRESQL_PASSWORD_HERE", "postgresql-replication-password": "YOUR_POSTGRESQL_REPLICATION_PASSWORD_HERE", "arss-identity-otp-pwd": "YOUR_ARUBA_IDENTITY_OTP_PWD", "arss-identity-user-pwd": "YOUR_ARUBA_IENTITY_USER_PWD"}`
 
 ### Install the chart and its dependencies
 
@@ -26,5 +24,5 @@ kubectl apply -f io-onboarding-pa-api/io-onboarding-pa-api-secrets.yaml
 cd io-onboarding-api
 helm dep update
 cd ..
-helm install -n io-onboarding-pa-api io-onboarding-api
+helm install --namespace onboarding -n io-onboarding-pa-api io-onboarding-api
 ```

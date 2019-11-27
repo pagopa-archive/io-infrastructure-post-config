@@ -61,6 +61,12 @@ ioOnboardingPaApi:
     kubernetesSpidCertsSecretName: io-onboarding-pa-api-spid-certs
     kubernetesSecretName: io-onboarding-pa-api-secrets
     azureSecretNamePrefix: k8s-io-onboarding-pa-api-secrets
+    azureSecretKeyNames:
+      - email-password
+      - postgresql-password
+      - postgresql-replication-password
+      - arss-identity-otp-pwd
+      - arss-identity-user-pwd
 
   spidCert:
     mountPath: "/usr/src/app/certs"
