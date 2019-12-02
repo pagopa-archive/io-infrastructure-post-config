@@ -33,9 +33,9 @@ ioOnboardingPaApi:
     client_spid_success_redirection_url: https://pa-onboarding.dev.io.italia.it/dashboard
     cookie_domain: .dev.io.italia.it
     node_env: development
-    postgres_host: io-onboarding-pa-api-postgresql
-    postgres_db: io-onboarding-pa-api
-    postgres_user: io-onboarding-pa-api
+    postgresql_host: io-onboarding-pa-api-postgresql
+    postgresql_database: io-onboarding-pa-api
+    postgresql_username: io-onboarding-pa-api
     saml_accepted_clock_skew_ms: "-1"
     saml_attribute_consuming_service_index: "0"
     saml_callback_url: "https://api.pa-onboarding.dev.io.italia.it/assertion-consumer-service"
