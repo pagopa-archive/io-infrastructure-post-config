@@ -29,13 +29,13 @@ spec:
           image: "{{ .Values.global.registry }}{{ .Values.ioOnboardingPaApi.images.backend.repository }}:{{ tpl .Values.ioOnboardingPaApi.images.backend.tag . }}"
           imagePullPolicy: {{ .Values.ioOnboardingPaApi.images.pullPolicy }}
           env:
-            - name: POSTGRES_HOST
-              value: "{{ .Values.ioOnboardingPaApi.env.postgres_host }}"
-            - name: POSTGRES_DB
-              value: "{{ .Values.ioOnboardingPaApi.env.postgres_db }}"
-            - name: POSTGRES_USER
-              value: "{{ .Values.ioOnboardingPaApi.env.postgres_user }}"
-            - name: POSTGRES_PASSWORD
+            - name: POSTGRESQL_HOST
+              value: "{{ .Values.ioOnboardingPaApi.env.postgresql_host }}"
+            - name: POSTGRESQL_DATABASE
+              value: "{{ .Values.ioOnboardingPaApi.env.postgresql_database }}"
+            - name: POSTGRESQL_USERNAME
+              value: "{{ .Values.ioOnboardingPaApi.env.postgresql_username }}"
+            - name: POSTGRESQL_PASSWORD
               valueFrom:
                 secretKeyRef:
                   name: io-onboarding-pa-api-secrets
