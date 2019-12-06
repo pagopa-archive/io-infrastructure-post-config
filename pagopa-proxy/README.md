@@ -1,28 +1,90 @@
 # PagoPA proxy
 
-The [IO PagoPA Proxy](https://github.com/teamdigitale/io-pagopa-proxy) allows the IO applications to communicate with PagoPA, essentially providing two functionalities:
+[IO PagoPA Proxy](https://github.com/teamdigitale/io-pagopa-proxy) allows the IO mobile application backend to communicate with PagoPA, essentially providing two functionalities:
 
-* Expose a REST API interface to the IO backend. The API calls are converted to SOAP calls to PagoPA (and viceversa)
+* Expose a REST API interface to the IO backend: the API calls are converted to SOAP calls to PagoPA and viceversa
 
-* Provide TLS 1.2 authentication and encryption services for the communications with PagoPA
+* Provide TLS 1.2 authentication and encryption services between IO and PagoPA
 
-## Installation
+*pagopa-proxy* is a quite articulated piece of software, which deserves a dedicated readme and needs to be deployed in a very specific way. Please read carefully this document before proceeding any further with the deployment.
 
-*pagopa-proxy* is a quite articulated piece of software, which needs to be deployed in a very specific way.
+## Code documentation
 
-Each environment (i.e. dev, prod) needs two versions of pagopa-proxy: one to communicate with the PagoPA test environment; one to communicate with the PagoPA production environment.
+This readme explains what's the architecture of the pagopa-proxy helm-package, and how to deploy it and maintain it. If you're looking for code-specific docs, you can have a look in the [pagopa-proxy dedicated repository](https://github.com/teamdigitale/io-pagopa-proxy).
 
-### Installation: step-by-step
+## Kubernetes package composition
 
-Following steps are needed, in order to deploy *pagopa-proxy*:
+Pagopa-proxy is distributed as a helm-chart, deploying two containers:
 
-* **Import IO TLS certificates in PEM format into the Azure Keyvault** using the Azure GUI. The certificate and the key must be placed one after the other, in PEM format, in the same file.
+* The *pagopa-proxy* container, running the application that performs the REST-SOAP conversions. Again, the source code of the application and more info about it are available on [GitHub](https://github.com/teamdigitale/io-pagopa-proxy)
 
-The IO private/public certificates secret name is automatically derived from the chart, using  use the following format: *Values.pagopaProxy.secrets.azureSecretNamePrefix*-*pagopa-io-certs*
+* The *pagopa-proxy-nginx-tls* container: a sidecar container running NGINX, that proxies requests from the pagopa-proxy container to PagoPA and viceversa, providing authentication and encryption.
 
-* **Import the PagoPA CA chain certificate into the Azure Keyvault** as a unique Keyvault *secret* (not as a certificate!). The secret consists of a multi-line text, but it's saved in Vault as a one-line string. For this reason, it can be either:
+## PagoPA environments and their relation with IO
+
+PagoPA delivers its payment functionalities through some *payment nodes*, which are divided in *test payment nodes* and *production payment nodes*. As opposed to production nodes, test payment nodes can't be used for real payments. At the current time, payment nodes only support a single peer (for example, one connection with pagopa-proxy).
+
+While the IO *dev* environment should only interact with a *test development node*, the *prod* environment should interact with both a *test* and a *development* node. Test nodes in the context of the IO prod environment generally allow end Public Administration users to test the payment process before sending a real message to citizens.
+
+### Hostnames and certificates
+
+Each pagopa-proxy instance connecting to PagoPA should listen for connections, and connect to PagoPA using a specific hostnames and specific certificates. At the same time, each PagoPA node type (test or prod) should be exposing speciic hostnames, and consequentially expose dedicated certificates. More examples are reported below.
+
+### Helm-chart configuration extensions
+
+While the *pagopa-proxy* helm-chart remains one, different configuration files in the [configs folder](configs) can extend it. The default configuration deploys *pagopa-proxy* in the *dev* environment, allowing connections to the *PagoPA test payment node*.
+
+Here are the extra configurations available:
+
+* [prod.yaml](configs/prod.yaml): extends the basic helm-chart configuration to deploy *pagopa-proxy* connecting to the *PagoPA test payment node* in the production environment
+
+* [pagopa-proxy-prod.yaml](configs/pagopa-proxy-prod.yaml): extends the basic helm-chart configuration and it's used together with the [prod.yaml configuration](configs/prod.yaml) to deploy a *pagopa-proxy* in the IO production environment, which connects to a *production payment node*
+
+## Deployment process
+
+Follow these steps to deploy *pagopa-proxy*:
+
+* **Communicate your public IP to PagoPA**: PagoPA filters ingress communications using IP filters (and so IO should do). This is usually the public IP of the application gateway associated with the Kubernetes cluster. Make sure to communicate the IP to PagoPA, so it will be added to their whitelist.
+
+* For security reasons, the PagoPA hostnames used in this chart (i.e. *gad.test.pagopa.gov.it*) are not publicly resolved. As such, the IP endpoints need to be previously requested to PagoPA (i.e. email) and static DNS entries should to be manually populated in the CoreDNS Kubernetes configuration (see how in the installation and configuration paragraph, below). Start creating the following yaml file:
+
+```yaml
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: coredns-custom
+  namespace: kube-system
+  labels:
+    addonmanager.kubernetes.io/mode: EnsureExists
+    k8s-app: kube-dns
+    kubernetes.io/cluster-service: "true"
+data:
+  custom_dns_entries.override: |
+    hosts {
+      X.Y.W.Z gad.test.pagopa.gov.it
+      fallthrough
+    }
+```
+
+The following example sets a custom DNS entry that binds *gad.test.pagopa.gov.it* to the IP *X.Y.W.Z*. You should change it and add as many IP/DNS entries as needed (one per line, before *fallthrough*).
+
+Name the file -for example- *dns-custom.yaml*. Then, apply the Kubernetes configuration running `kubectl apply -f dns-custom.yaml`
+
+>**WARNING**: Do not publicly commit the PagoPA IP addresses to do not compromise the security policies of PagoPA.
+
+Now, force CoreDNS to reload its ConfigMaps. The `kubectl delete pod` command isn't destructive and doesn't cause any down time. The kube-dns pods will get deleted, and the Kubernetes scheduler will recreate them.
+
+```shell
+kubectl delete pod --namespace kube-system -l k8s-app=kube-dns
+```
+
+* **Import IO TLS certificates (public + intermediate certificate and private keys) in PFX format into the Azure Keyvault** using the Azure GUI (Azure keyvault -> select your keyvault -> certificates -> upload/import). Call the certificate *k8s-pagopa-proxy-NODE-TYPE-secrets-io-certs*, where *NODE-TYPE* can be either *test* or *prod*, depending on PagoPA node type you're connecting to (i.e. test or prod).
+
+* **Import the PagoPA CA chain certificate into the Azure Keyvault** as a unique Keyvault *secret* (not as a certificate!). The secret consists of a multi-line text, but it's saved in the Keyvault as a one-line string. For this reason, it can be either:
   
-  * input directly from the GUI, if correctly placed before in a text editor on a single line, and after adding `\n` at the end of each line.
+  * input directly from the GUI, if correctly placed before in a text editor on a single line, and adding `\n` at the end of each line
+
+  * input directly from the GUI in PFX format
 
   * Imported using the *az CLI tool* with the following command:
     ```shell
@@ -30,11 +92,9 @@ The IO private/public certificates secret name is automatically derived from the
     ```
     The command automatically formats the file and stores it in the Azure Keyvault.
 
-The PagoPA CA chain certificate secret name is automatically derived from the chart, using  use the following format: : *Values.pagopaProxy.secrets.azureSecretNamePrefix*-*pagopa-ca-chain-certs*
+The PagoPA CA chain certificate secret name should be: *k8s-pagopa-proxy-NODE-TYPE-secrets-pagopa-ca-chain-certs*, where *NODE-TYPE* can be either *test* or *prod*, depending on PagoPA node type you're connecting to (i.e. test or prod).
 
-* **Create all other secrets**: create an Azure Keyvault secret in Json format in the GUI.
-
-The other secret names are derived from the values specified in the chart variables, and are in the following format: *Values.pagopaProxy.secrets.azureSecretNamePrefix*-*Values.pagopaProxy.secrets.azureSecretNameSuffix*
+* **Create all other secrets**: create an Azure Keyvault secret in Json format through the Azure portal GUI. The name of the secret should be *k8s-pagopa-proxy-NODE-TYPE-secrets*, where *NODE-TYPE* can be either *test* or *prod*, depending on PagoPA node type you're connecting to (i.e. test or prod). The secret should have the following content `{"pagopa-password": "XXX", "pagopa-id-psp": "XXX", "pagopa-id-int-psp": "XXX", "pagopa-id-canale": "XXX", "pagopa-id-canale-pagamento": "XXX", "redis-db-password": "XXX"}`. Substitute *XXX* as appropriate.
 
 * **Install the chart**
 
@@ -44,49 +104,41 @@ The chart needs a specific name, depending on its function:
 
 * to reach PagoPA production environments: *pagopa-proxy*
 
-These are the procedures to install the chart:
+These are the procedures to install the chart, depending by the IO environment you're deploying the chart into and by the function of the PagoPA node you're connecting to:
 
-* dev / pagopa-test: `helm install -n pagopa-proxy-test pagopa-proxy`
+| IO env | PagoPA node function | Command | 
+| ------ | -------------------- | ------------------------------------------- |
+| dev | pagopa-test | `helm install -n pagopa-proxy-test pagopa-proxy` |
+| prod | pagopa-test | `helm install -f configs/prod.yaml -n pagopa-proxy-test pagopa-proxy`|
+| prod | pagopa-prod | `helm install -f configs/pagopa-proxy-prod.yaml -f configs/prod.yaml -n pagopa-proxy pagopa-proxy`|
 
-* dev / pagopa-prod: `helm install -f configs/pagopa-proxy-prod.yaml -n pagopa-proxy pagopa-proxy`
+* **Modify Azure Application Gateway health probe**: the pagopa-proxy is deployed behind an [Application Gateway](https://azure.github.io/application-gateway-kubernetes-ingress/), which sits in front of the Kubernetes cluster for security reasons. The type of probe used by pagopa-proxy is still not fully compatible with the Application Gateway probes. For this reason the probe created needs to be modified manually, so the application gateway probe won't fail and the endpoint will be reachable. To do so, reach the application gateway through the Azure portal. Go to *Health Probes*. Find the health probe reaching pagopa-proxy and select it. Change the path to */healthz*. Test and save.
 
-* prod / pagopa-test: `helm install -f configs/prod.yaml -n pagopa-proxy-test pagopa-proxy`
+## Example of an egress flow from IO to PagoPA
 
-* prod / pagopa-prod: `helm install -f configs/pagopa-proxy-prod.yaml -f configs/prod.yaml -n pagopa-proxy pagopa-proxy`
-
-## Kubernetes package composition
-
-The PagoPA proxy application is distributed as a helm-chart, which installs a Kubernetes service to get calls from the other IO services, an ingress to expose its SOAP interface to PagoPA, and Kubernetes POD made of two containers:
-
-* The *pagopa-proxy* container, running the application that performs the REST-SOAP conversions. The source code of the application and more info about it are available on [GitHub](https://github.com/teamdigitale/io-pagopa-proxy)
-
-* The *pagopa-proxy-nginx-tls* container: a sidecar container running NGINX, proxying the requests from the PagoPA application and transparently (for the pagopa-proxy application) adding the keys and certificates needed for IO to authenticate and encrypt traffic, while talking to PagoPA
-
-The container also authenticates incoming requests from PagoPA using the ingress gateway functionalities exposed by the NGINX ingress container already installed in the system (see more under the folder *system* and look at the *ingress.yaml* file in this helm-chart).
-
-## Communication Flow
-
-An egress request going from an IO application to PagoPA
+The following diagram shows an egress request going from the IO mobile application backend to PagoPA
 
 ```
                                _________________pod pagopa-proxy___
            ____________       | ______________       _____________ |
 REST      |            |      ||              |     | pagopa-proxy||   PagoPA
-from ->:80|pagopa-proxy|->:8080| pagopa-proxy |->:80| -nginx-tls  |-->:443
+from ->:80|pagopa-proxy|->:8080| pagopa-proxy |->:80| -nginx-tls  |<-->:443
  IO       |   service  |      ||   container  |     |  container  ||   SOAP
           |____________|      ||______________|     |_____________||   call
                               |____________________________________|
 ```
 
-* An IO component sends a request to the pagopa-proxy service, on port 80
+* The app backend sends a request to the pagopa-proxy service, on port 80
 
-* The pagopa-proxy container forwards the request to the pagopa-proxy-nginx-tls container in the same POD, port 80
+* The pagopa-proxy service forwards to the pagopa-proxy container, port 8080
 
-* The pagopa-proxy-nginx-tls container authenticates with PagoPA, encrypts the traffic and forwards it to PagoPA, port 443
+* The pagopa-proxy container forwards to the pagopa-proxy-nginx-tls container in the same pod (localhost), port 80. A virtualhost called *pagopa* has been configured in the *pagopa-proxy-nginx-tls* container to match the request
+
+* The pagopa-proxy-nginx-tls container authenticates with PagoPA, encrypts the traffic and forwards it to PagoPA, towards port 443
 
 ## How the TLS authentication and encryption with PagoPA works
 
-Before communicating, IO and PagoPA perform a mutual TLS (certificate-based) authentication. Then, the overall session gets encrypted, always using TLS.
+Before communicating, IO and PagoPA perform a mutual TLS (certificate-based) authentication. Then, a session is formed and gets encrypted, always using TLS.
 
 Depending on the primitives called, there are two major, distinct communication phases:
 
@@ -94,7 +146,7 @@ Depending on the primitives called, there are two major, distinct communication 
 
 * PagoPA acts as the client and IO as the server
 
-When one of the two parties acts as the server, it requires the other to present itself with a key and a certificate, in order to authenticate it and being able to communicate.
+When one of the two parties acts as the server, it requires the other to present itself with a valid key and certificate, in order to authenticate and being able to communicate.
 
 The server always presents itself with a public server certificate, to make the client validate its identity and avoid man-in-the-middle attacks.
 
@@ -104,67 +156,15 @@ As such, when a client wants to initiate a connection to the server, it needs to
 
 It's a common practice for connections with PagoPA to use the same key and certificate, both while acting as the server, and while acting as the client.
 
-## PagoPA static DNS entry
+## Build test SSL Certificates
 
-For security reasons, the PagoPA hostnames used in this chart (i.e. *gad.test.pagopa.gov.it*) are not publicly resolved. As such, the IP endpoints need to be previously requested to PagoPA and static DNS entries need to be manually populated in the CoreDNS configuration (see how in the installation and configuration paragraph, below).
-
-# How to install and configure PagoPA proxy
-
-## DNS
-To establish a successful communication with PagoPA the following actions need to be performed:
-
-* **Communicate your public IP to PagoPA:** PagoPA filters ingress communications using IP filters (and so should do IO). The first load balancer external, public IP configured in the cluster -presumably the one associated with the NGINX ingress- is also set by default as the cluster egress IP. Make sure to communicate the IP to PagoPA, so it will be added to their whitelist.
-
-* **Get the PagoPA public IPs and populate CoreDNS with static entries** creating a file locally on your machine, like the one below.
-
-```yaml
-apiVersion: v1
-data:
-  custom_dns_entries.override: |
-    hosts {
-      X.Y.W.Z gad.test.pagopa.gov.it
-      fallthrough
-    }
-kind: ConfigMap
-metadata:
-  labels:
-    addonmanager.kubernetes.io/mode: EnsureExists
-    k8s-app: kube-dns
-    kubernetes.io/cluster-service: "true"
-  name: coredns-custom
-  namespace: kube-system
-```
-
-The following example sets a custom DNS entry that binds *gad.test.pagopa.gov.it* to the IP *X.Y.W.Z*. You should change it and add as many IP/DNS entries as needed (one per line).
-
-Then, apply the file running `kubectl apply -f dns-custom.yaml`
-
->**WARNING**: Do not publicly commit the PagoPA IP addresses to do not compromise the security policies of PagoPA.
-
-
-Now force CoreDNS to reload the ConfigMap. The kubectl delete pod command isn't destructive and doesn't cause down time. The kube-dns pods are deleted, and the Kubernetes Scheduler then recreates them.
-
-```shell
-kubectl delete pod --namespace kube-system -l k8s-app=kube-dns
-```
-
-## SSL Certificates
-
-* **Generate test certificates (optional):** while PagoPA will always use official CA released certificates, during the initial test phase it may be beneficial for the counterpart to generate temporary, self-signed certificates. This can be easily achieved using *openssl*:
+While PagoPA will always use official CA released certificates, during the initial test phase it may be beneficial for the counterpart to generate temporary, self-signed certificates for test purposes. This can be easily achieved using *openssl*:
 
 ```shell
 openssl req -x509 -nodes -days 365 -newkey rsa:2048 -keyout tls.key -out tls.crt -subj "/CN=pagopa-test.dev.io.italia.it/O=IO"
 ```
 
-The example creates a public certificate called *tls.crt* and a private key named *tls.key*. *CN* and *O* values should be adjusted to the specific hostname in use.
-
-* **Load the IO (client/server) certificates as Kubernetes secrets:** the private key *tls.key* and the public certificate *tls.crt* need to be loaded in Kubernetes as secrets.
-
-```shell
-kubectl create secret tls pagopa-proxy-io-test-certs --key tls.key --cert tls.crt
-```
-
-The command loads *tls.key* and *tls.crt* in a Kubernetes secret called *pagopa-io-test-certs*. Adjust values as needed.
+The example creates a public certificate called *tls.crt* and a private key named *tls.key*. *CN* and *O* values should be adjusted to the specific hostname in use for the demo (can be changed in [values.yaml](values.yaml)).
 
 * **Create the full-chain CA certificate**
 
@@ -178,45 +178,12 @@ To create a full-chain CA certificate, used to validate PagoPA certificates:
 
 >**NOTE**: These steps assume that the certificates have been signed by DigiCert CA. If the ca-chain-cert.pem file loaded is not able to validate the PagoPA certificate make sure the certificate has been released by Digicert. Apply otherwise the similar procedure to other CAs.
 
-* **Load the PagoPA full-chain CA certificate in Kubernetes:** after obtaining the full-chain certificate, create an ad-hoc secret in Kubernetes:
-
-```shell
-kubectl create secret generic pagopa-proxy-pagopa-ca-test-certs --from-file=ca.crt=ca-chain-cert.pem
-```
-
-Adjust the name of the secret and the name of the file as needed.
-
-* **Create all other secrets, needed by the helm-chart**: the helm-chart requires additional secrets to be set. To load the secrets in Kubernetes, create a yaml file as below and apply it with `kubectl apply -f my_secrets_file.yaml`
-
-```yaml
-apiVersion: v1
-kind: Secret
-metadata:
-  name: pagopa-proxy
-type: Opaque
-stringData:
-  id_canale: "XXX"
-  id_canale_pagamento: "XXX"
-  id_intermediario_psp: "XXX"
-  id_psp: "XXX"
-  pagopa_password: "XXX"
-  redis_password: "XXX"
-```
-
-The file above contains a list of exemplar variables and values placeholders. Please, check the values.yaml of this chart for the updated list of secrets and adjust the values as needed.
-
-* **Deploy the pagopa-proxy helm-chart**
-
-```shell
-helm install -n pagopa-proxy pagopa-proxy
-```
-
 ## Test the egress connection to PagoPA
 
-To test the egress connection to PagoPA (thus verifying to be able to authenticate), the quickest thing to do is manually enter in the pagopa-proxy container and curl PagoPA.
+To test the egress connection to PagoPA (thus verifying to be able to authenticate), the quickest thing to do is to manually enter in the pagopa-proxy container and curl PagoPA.
 It doesn't matter what SOAP is sent to PagoPA: if the authentication is successful PagoPA will return an application error. Otherwise, the authentication will fail and a 403 will be returned instead.
 
-Following is an example of a test
+Following is a test example:
 
 ```
 $ kubectl get pods
@@ -238,6 +205,6 @@ $ kubectl exec -it pagopa-proxy-85cc4ddfc6-bdtgb -c pagopa-proxy /bin/sh
 
 /usr/src/app # apk update && apk add curl
 
-# Following command will either return an application error (SUCCESS!) or an authentication error
+# Following command will either return an application error (SUCCESS!) or an authentication error (FAILURE :()
 /usr/src/app # curl -d '<run>...</run>' http://test.pagopa/openspcoop2/proxy/PA/
 ```

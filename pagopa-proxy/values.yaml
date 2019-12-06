@@ -34,8 +34,9 @@ pagopaProxy:
     redis_db_url: "io-dev-redis-cache-01.redis.cache.windows.net"
     redis_db_port: "6380"
     redis_use_cluster: true
-    pagopa_proxy_nginx_tls_server_name: "pagopa"
-    pagopa_host: "https://gad.test.pagopa.gov.it/"
+    proxy_internal_hostname: "pagopa"
+    proxy_external_hostname: "pagopa-test.dev.io.italia.it"
+    pagopa_hostname: "https://gad.test.pagopa.gov.it/"
 
   secrets:
     azureKeyvaultName: io-dev-keyvault
@@ -74,10 +75,10 @@ pagopaProxy:
           server {
             listen 80;
 
-            server_name ${SERVER_NAME};
+            server_name ${PROXY_INTERNAL_HOSTNAME};
 
             location / {
-              proxy_pass                    ${PAGOPA_HOST};
+              proxy_pass                    ${PAGOPA_HOSTNAME};
               proxy_set_header              Content-Type text/xml;
 
               proxy_ssl_certificate         /etc/nginx/io_certs/tls.crt;
@@ -92,21 +93,29 @@ pagopaProxy:
 
           server {
             listen 443 ssl;
+            server_name            ${PROXY_EXTERNAL_HOSTNAME};
 
-            if ($ssl_client_verify != "SUCCESS") { return 403; }
+            ssl_certificate        /etc/nginx/io_certs/tls.crt;
+            ssl_certificate_key    /etc/nginx/io_certs/tls.key;
+
             ssl_client_certificate /etc/nginx/pagopa_ca_certs/ca.crt;
-            ssl_verify_depth 2;
-            ssl_verify_client on;
+            ssl_verify_client      optional;
+            ssl_verify_depth       2;
 
-            ssl_certificate     /etc/nginx/io_certs/tls.crt;
-            ssl_certificate_key /etc/nginx/io_certs/tls.key;
+            location = /healthz {
+              return 200 'pagopa-proxy is alive!';
+            }
 
-            location / {
+            location = / {
+              if ($ssl_client_verify != SUCCESS) {
+                return 403;
+              }
+
+              proxy_pass       http://localhost:8080;
               proxy_set_header Host $host;
               proxy_set_header X-Real-IP $remote_addr;
               proxy_set_header SSL_Client $ssl_client_s_dn;
               proxy_set_header SSL_Client_Verify $ssl_client_verify;
-              proxy_pass http://localhost:8080;
             }
           }
       pagopaCaCertsConfig:
@@ -120,15 +129,7 @@ pagopaProxy:
           mountPath: "/etc/nginx/io_certs"
           readOnly: true
 
-  livenessProbe:
-    pagopaProxy:
-      httpGet:
-        path: "/ping"
-        port: 8080
-      initialDelaySeconds: 30
-      timeoutSeconds: 5
-      periodSeconds: 10
-      failureThreshold: 5
+  probes_host_header: pagopa-test.dev.io.italia.it
 
   ingress:
     enabled: true
@@ -136,16 +137,13 @@ pagopaProxy:
       kubernetes.io/ingress.class: "azure/application-gateway"
       appgw.ingress.kubernetes.io/backend-protocol: "https"
       appgw.ingress.kubernetes.io/ssl-redirect: "true"
-      kubernetes.io/tls-acme: "true"
-      cert-manager.io/cluster-issuer: "letsencrypt-prod"
-      cert-manager.io/acme-challenge-type: "http01"
     path: /
     hosts:
       - pagopa-test.dev.io.italia.it
     tls:
       - hosts:
-          - pagopa-test.dev.io.italia.it
-        secretName: pagopa-proxy-test-io-certs-tls
+        - pagopa-test.dev.io.italia.it
+        secretName: pagopa-proxy-test-io-certs
 
   resources: {}
     # To set limits remove the curly brackets

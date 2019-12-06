@@ -14,14 +14,17 @@ appBackend:
     saml_callback_url: "https://app-backend.io.italia.it/assertionConsumerService"
     spid_testenv_url: "https://spid-testenv.io.italia.it"
 
+  secrets:
+    azureKeyvaultName: io-prod-keyvault
+
   ingress:
     hosts:
       - app-backend.prod.io.italia.it
-      # - app-backend.io.italia.it
+      - app-backend.io.italia.it
     tls:
       - hosts:
           - app-backend.prod.io.italia.it
-          # - app-backend.io.italia.it
+          - app-backend.io.italia.it
         secretName: app-backend-tls
 
 # APP-BACKEND - end
@@ -32,11 +35,11 @@ spidTestenv:
   ingress:
     hosts:
       - spid-testenv.prod.io.italia.it
-      # - spid-testenv.io.italia.it
+      - spid-testenv.io.italia.it
     tls:
       - hosts:
           - spid-testenv.prod.io.italia.it
-          # - spid-testenv.io.italia.it
+          - spid-testenv.io.italia.it
         secretName: spid-testenv-tls
 
 # SPIND-TESTENV - end
@@ -52,6 +55,9 @@ ioOnboardingPaApi:
     node_env: production
     saml_callback_url: "https://api.pa-onboarding.io.italia.it/assertion-consumer-service"
     spid_testenv_url: "https://spid-testenv.io.italia.it"
+
+  secrets:
+    azureKeyvaultName: io-prod-keyvault
 
   ingress:
     hosts:
@@ -136,19 +142,20 @@ developerPortal:
 
 pagopaProxy:
   env:
+    proxy_external_hostname: "pagopa-test.io.italia.it"
     redis_db_url: "io-prod-redis-cache-01.redis.cache.windows.net"
 
   secrets:
     azureKeyvaultName: io-prod-keyvault
 
+  probes_host_header: pagopa-test.io.italia.it
+
   ingress:
     hosts:
-      - pagopa-test.prod.io.italia.it
-      # - pagopa-test.io.italia.it
+      - pagopa-test.io.italia.it
     tls:
       - hosts:
-          - pagopa-test.prod.io.italia.it
-          # - pagopa-test.io.italia.it
-        secretName: pagopa-proxy-test-io-certs-tls
+        - pagopa-test.io.italia.it
+        secretName: pagopa-proxy-test-io-certs
 
 # PAGOPA-PROXY - end

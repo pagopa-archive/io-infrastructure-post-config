@@ -39,7 +39,7 @@ spec:
       hostAliases:
       - ip: "127.0.0.1"
         hostnames:
-        - "{{ .Values.pagopaProxy.env.pagopa_proxy_nginx_tls_server_name }}"
+        - "{{ .Values.pagopaProxy.env.proxy_internal_hostname }}"
 
       containers:
         # PagoPA Proxy
@@ -54,13 +54,13 @@ spec:
             - name: "PAGOPAPROXY_PORT"
               value: "{{ .Values.pagopaProxy.env.pagopaproxy_port }}"
             - name: "PAGOPA_HOST"
-              value: "http://{{ .Values.pagopaProxy.env.pagopa_proxy_nginx_tls_server_name }}"
+              value: "http://{{ .Values.pagopaProxy.env.proxy_internal_hostname }}"
             - name: "PAGOPA_PORT"
               value: "80"
             - name: "PAGOPA_WS_URI"
               value: "{{ .Values.pagopaProxy.env.pagopa_ws_uri }}"
             - name: "PAGOPA_HOST_HEADER"
-              value: "{{ .Values.pagopaProxy.env.pagopa_proxy_nginx_tls_server_name }}"
+              value: "{{ .Values.pagopaProxy.env.proxy_internal_hostname }}"
             - name: "PAGOPA_TIMEOUT_MSEC"
               value: "{{ .Values.pagopaProxy.env.pagopa_timeout_msec }}"
             - name: "REDIS_DB_URL"
@@ -79,16 +79,23 @@ spec:
               value: {{ $azureSecretName }}@azurekeyvault?{{ . }}
             {{- end }}
 
-          {{- with .Values.pagopaProxy.livenessProbe.pagopaProxy }}
           livenessProbe:
             httpGet:
-              path: {{ toYaml .httpGet.path }}
-              port: {{ toYaml .httpGet.port }}
-            initialDelaySeconds: {{ toYaml .initialDelaySeconds }}
-            timeoutSeconds: {{ toYaml .timeoutSeconds }}
-            periodSeconds: {{ toYaml .periodSeconds }}
-            failureThreshold: {{ toYaml .failureThreshold }}
-          {{- end }}
+              path: /ping
+              port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 5
+          readinessProbe:
+            httpGet:
+              path: /ping
+              port: 8080
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 5
+
           ports:
             - name: ppa-http
               containerPort: {{ .Values.pagopaProxy.services.pagopaProxy.httpPort.containerPort }}
@@ -101,16 +108,18 @@ spec:
           image: "{{ .Values.global.registry }}{{ .Values.pagopaProxy.images.pagopaProxyNginxTls.repository }}:{{ tpl .Values.pagopaProxy.images.pagopaProxyNginxTls.tag . }}"
           imagePullPolicy: {{ .Values.pagopaProxy.images.pagopaProxyNginxTls.pullPolicy }}
           env:
-            - name: "SERVER_NAME"
-              value: "{{ .Values.pagopaProxy.env.pagopa_proxy_nginx_tls_server_name }}"
-            - name: "PAGOPA_HOST"
-              value: "{{ .Values.pagopaProxy.env.pagopa_host }}"
+            - name: "PROXY_INTERNAL_HOSTNAME"
+              value: "{{ .Values.pagopaProxy.env.proxy_internal_hostname }}"
+            - name: "PROXY_EXTERNAL_HOSTNAME"
+              value: "{{ .Values.pagopaProxy.env.proxy_external_hostname }}"
+            - name: "PAGOPA_HOSTNAME"
+              value: "{{ .Values.pagopaProxy.env.pagopa_hostname }}"
           command:
             - "/bin/sh"
           args:
             - "-c"
             - |
-              envsubst < /etc/nginx/conf.d/tmp/pagopa_proxy_nginx_tls.template > /etc/nginx/conf.d/pagopa_proxy_nginx_tls.conf &&
+              envsubst '${PROXY_INTERNAL_HOSTNAME} ${PROXY_EXTERNAL_HOSTNAME} ${PAGOPA_HOSTNAME}' < /etc/nginx/conf.d/tmp/pagopa_proxy_nginx_tls.template > /etc/nginx/conf.d/pagopa_proxy_nginx_tls.conf &&
               exec nginx -g 'daemon off;'
           {{- with .Values.pagopaProxy.configs.pagopaProxyNginxTls.nginxConfig.volumeMountSettings }}
           volumeMounts:
@@ -128,6 +137,33 @@ spec:
               mountPath: {{ .mountPath }}
               readOnly: {{ .readOnly }}
           {{- end }}
+
+          livenessProbe:
+            httpGet:
+              scheme: HTTPS
+              port: 443
+              path: /healthz
+              httpHeaders:
+              - name: Host
+                value: "{{ .Values.pagopaProxy.probes_host_header }}"
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 5
+
+          readinessProbe:
+            httpGet:
+              scheme: HTTPS
+              port: 443
+              path: /healthz
+              httpHeaders:
+              - name: Host
+                value: "{{ .Values.pagopaProxy.probes_host_header }}"
+            initialDelaySeconds: 30
+            timeoutSeconds: 5
+            periodSeconds: 10
+            failureThreshold: 5
+
           ports:
             - name: ppa-nginx-http
               containerPort: {{ .Values.pagopaProxy.services.pagopaProxyNginxTls.httpPort.containerPort }}

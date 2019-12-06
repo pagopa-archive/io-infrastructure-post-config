@@ -1,13 +1,13 @@
 ---
 
 {{- if .Values.pagopaProxy.ingress.enabled -}}
-{{- $fullName := include "pagopa-proxy.fullname" . -}}-https
+{{- $fullName := include "pagopa-proxy.fullname" . -}}
 {{- $servicePort := .Values.pagopaProxy.services.pagopaProxyNginxTls.httpsPort.servicePort -}}
 {{- $ingressPath := .Values.pagopaProxy.ingress.path -}}
 apiVersion: extensions/v1beta1
 kind: Ingress
 metadata:
-  name: {{ $fullName }}
+  name: {{ $fullName }}-https
   labels:
     app: {{ template "pagopa-proxy.name" . }}
     chart: {{ template "pagopa-proxy.chart" . }}
@@ -35,7 +35,7 @@ spec:
         paths:
           - path: {{ $ingressPath }}
             backend:
-              serviceName: {{ $fullName }}
+              serviceName: {{ $fullName }}-https
               servicePort: {{ $servicePort }}
   {{- end }}
 {{- end }}
