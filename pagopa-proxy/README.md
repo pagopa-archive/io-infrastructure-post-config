@@ -28,7 +28,7 @@ While the IO *dev* environment should only interact with a *test development nod
 
 ### Hostnames and certificates
 
-Each pagopa-proxy instance connecting to PagoPA should listen for connections, and connect to PagoPA using a specific hostnames and specific certificates. At the same time, each PagoPA node type (test or prod) should be exposing speciic hostnames, and consequentially expose dedicated certificates. More examples are reported below.
+Each pagopa-proxy instance connecting to PagoPA should listen for connections, and connect to PagoPA using a specific hostnames and specific certificates. At the same time, each PagoPA node type (test or prod) should be exposing specific hostnames, and consequentially expose dedicated certificates. More examples are reported below.
 
 ### Helm-chart configuration extensions
 
@@ -70,7 +70,7 @@ The following example sets a custom DNS entry that binds *gad.test.pagopa.gov.it
 
 Name the file -for example- *dns-custom.yaml*. Then, apply the Kubernetes configuration running `kubectl apply -f dns-custom.yaml`
 
->**WARNING**: Do not publicly commit the PagoPA IP addresses to do not compromise the security policies of PagoPA.
+>**WARNING**: Do not commit the PagoPA IP addresses. It would compromise the security policies of PagoPA.
 
 Now, force CoreDNS to reload its ConfigMaps. The `kubectl delete pod` command isn't destructive and doesn't cause any down time. The kube-dns pods will get deleted, and the Kubernetes scheduler will recreate them.
 
@@ -181,7 +181,8 @@ To create a full-chain CA certificate, used to validate PagoPA certificates:
 ## Test the egress connection to PagoPA
 
 To test the egress connection to PagoPA (thus verifying to be able to authenticate), the quickest thing to do is to manually enter in the pagopa-proxy container and curl PagoPA.
-It doesn't matter what SOAP is sent to PagoPA: if the authentication is successful PagoPA will return an application error. Otherwise, the authentication will fail and a 403 will be returned instead.
+For this specific exercise, it doesn't matter what SOAP message is sent to PagoPA. What we want to test is the authentication process.
+If the authentication is *successful* PagoPA will return an application error (since we're sending a random message). Otherwise, the authentication will fail and a 403 will be returned instead.
 
 Following is a test example:
 
