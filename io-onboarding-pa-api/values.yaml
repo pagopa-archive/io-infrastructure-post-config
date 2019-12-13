@@ -39,7 +39,7 @@ ioOnboardingPaApi:
     saml_accepted_clock_skew_ms: "-1"
     saml_attribute_consuming_service_index: "0"
     saml_callback_url: "https://api.pa-onboarding.dev.io.italia.it/assertion-consumer-service"
-    saml_issuer: "io-pa-onboarding"
+    saml_issuer: "https://api.pa-onboarding.dev.io.italia.it"
     spid_autologin: ""
     spid_testenv_url: "https://spid-testenv.dev.io.italia.it"
     idp_metadata_url: "https://registry.spid.gov.it/metadata/idp/spid-entities-idps.xml"

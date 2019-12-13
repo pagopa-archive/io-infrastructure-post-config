@@ -35,7 +35,7 @@ appBackend:
     redis_url: "io-dev-redis-cache-01.redis.cache.windows.net"
     redis_port: "6380"
     saml_callback_url: "https://app-backend.dev.io.italia.it/assertionConsumerService"
-    saml_issuer: "https://spid.agid.gov.it/cd"
+    saml_issuer: "https://app-backend.dev.io.italia.it"
     saml_attribute_consuming_service_index: "0"
     spid_testenv_url: "https://spid-testenv.dev.io.italia.it"
     token_duration_in_seconds: "2592000" # 30 days

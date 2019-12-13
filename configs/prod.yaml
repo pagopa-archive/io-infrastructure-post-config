@@ -11,6 +11,7 @@ appBackend:
     azure_nh_hub_name: "io-prod-nh-nh-01"
     node_env: "production"
     redis_url: "io-prod-redis-cache-01.redis.cache.windows.net"
+    saml_issuer: "https://app-backend.io.italia.it"
     saml_callback_url: "https://app-backend.io.italia.it/assertionConsumerService"
     spid_testenv_url: "https://spid-testenv.io.italia.it"
 
@@ -19,11 +20,9 @@ appBackend:
 
   ingress:
     hosts:
-      - app-backend.prod.io.italia.it
       - app-backend.io.italia.it
     tls:
       - hosts:
-          - app-backend.prod.io.italia.it
           - app-backend.io.italia.it
         secretName: app-backend-tls
 
@@ -34,13 +33,45 @@ appBackend:
 spidTestenv:
   ingress:
     hosts:
-      - spid-testenv.prod.io.italia.it
       - spid-testenv.io.italia.it
     tls:
       - hosts:
-          - spid-testenv.prod.io.italia.it
           - spid-testenv.io.italia.it
         secretName: spid-testenv-tls
+
+  configs:
+    config: |
+      # Identity provider configuration
+
+      base_url: "https://spid-testenv.io.italia.it"
+
+      # To sign SAML messages
+
+      key_file: "/app/conf/idp.key"
+      cert_file: "/app/conf/idp.crt"
+
+      # Service provider configuration
+
+      metadata:
+        remote:
+          - url: "https://api.pa-onboarding.io.italia.it/metadata"
+          - url: "https://app-backend.io.italia.it/metadata"
+
+      # Web server configuration
+
+      debug: false
+
+      host: 0.0.0.0
+      port: 8088
+
+      # HTTPS is handled by Kubernetes ingress
+
+      https: false
+
+      # Identity provider endpoints
+      endpoints:
+        single_sign_on_service: "/sso"
+        single_logout_service: "/slo"
 
 # SPIND-TESTENV - end
 
@@ -53,6 +84,7 @@ ioOnboardingPaApi:
     client_spid_success_redirection_url: https://pa-onboarding.io.italia.it/dashboard
     cookie_domain: .io.italia.it
     node_env: production
+    saml_issuer: "https://api.pa-onboarding.io.italia.it"
     saml_callback_url: "https://api.pa-onboarding.io.italia.it/assertion-consumer-service"
     spid_testenv_url: "https://spid-testenv.io.italia.it"
 
@@ -61,12 +93,11 @@ ioOnboardingPaApi:
 
   ingress:
     hosts:
-      - api.pa-onboarding.prod.io.italia.it
       - api.pa-onboarding.io.italia.it
     tls:
       - hosts:
-          - api.pa-onboarding.prodio.italia.it
           - api.pa-onboarding.io.italia.it
+        secretName: io-onboarding-pa-api-prod-tls
 
 # IO-ONBOARDING-PA-API - end
 
@@ -81,12 +112,11 @@ ioOnboardingPa:
 
   ingress:
     hosts:
-      - pa-onboarding.prod.io.italia.it
       - pa-onboarding.io.italia.it
     tls:
       - hosts:
-          - pa-onboarding.prod.io.italia.it
           - pa-onboarding.io.italia.it
+        secretName: io-onboarding-pa-prod-tls
 
 # IO-ONBOARDING-PA - end
 
@@ -106,11 +136,9 @@ developerPortalBackend:
 
   ingress:
     hosts:
-      - backend.developer.prod.io.italia.it
       - backend.developer.io.italia.it
     tls:
       - hosts:
-          - backend.developer.prod.io.italia.it
           - backend.developer.io.italia.it
         secretName: developer-portal-backend-prod-tls
 
