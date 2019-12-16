@@ -27,6 +27,7 @@ ioOnboardingPaApi:
 
   env:
     api_base_path: /api/v1
+    backend_port: "3000"
     client_domain: https://pa-onboarding.dev.io.italia.it
     client_spid_error_redirection_url: /error.html
     client_spid_login_redirection_url: https://pa-onboarding.dev.io.italia.it

@@ -29,6 +29,8 @@ spec:
           image: "{{ .Values.global.registry }}{{ .Values.ioOnboardingPaApi.images.backend.repository }}:{{ tpl .Values.ioOnboardingPaApi.images.backend.tag . }}"
           imagePullPolicy: {{ .Values.ioOnboardingPaApi.images.pullPolicy }}
           env:
+            - name: BACKEND_PORT
+              value: "{{ .Values.ioOnboardingPaApi.env.backend_port }}"
             - name: POSTGRESQL_HOST
               value: "{{ .Values.ioOnboardingPaApi.env.postgresql_host }}"
             - name: POSTGRESQL_DATABASE
