@@ -114,6 +114,9 @@ spidTestenv:
         single_sign_on_service: "/sso"
         single_logout_service: "/slo"
 
+      # Disable new users
+      can_add_user: false
+
     idpCrt: |
       -----BEGIN CERTIFICATE-----
       MIIC7TCCAdWgAwIBAgIJAMbxPOoBth1LMA0GCSqGSIb3DQEBCwUAMA0xCzAJBgNV
