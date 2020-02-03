@@ -15,7 +15,7 @@ The repository contains a collection of Kubernetes configuration files to provis
 The repository makes mainly use of the following tools:
 
 * [Kubernetes](https://kubernetes.io/)
-* [Helm 2.x](https://helm.sh/)
+* [Helm v2.15.2](https://helm.sh/)
 
 ## Folder structure
 
