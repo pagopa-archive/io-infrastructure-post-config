@@ -1,7 +1,6 @@
 ---
-
 global:
-  registry: ''
+  registry: ""
 
 # APP-BACKEND - start
 
@@ -13,6 +12,7 @@ appBackend:
     redis_url: "io-prod-redis-cache-01.redis.cache.windows.net"
     saml_issuer: "https://app-backend.io.italia.it"
     saml_callback_url: "https://app-backend.io.italia.it/assertionConsumerService"
+    saml_logout_callback_url: "https://app-backend.io.italia.it/slo"
     spid_testenv_url: "https://spid-testenv.io.italia.it"
 
   secrets:
@@ -183,7 +183,6 @@ pagopaProxy:
       - pagopa-test.io.italia.it
     tls:
       - hosts:
-        - pagopa-test.io.italia.it
+          - pagopa-test.io.italia.it
         secretName: pagopa-proxy-test-io-certs
-
 # PAGOPA-PROXY - end
