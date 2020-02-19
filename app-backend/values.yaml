@@ -1,10 +1,8 @@
 ---
-
 global:
-  registry: ''
+  registry: ""
 
 appBackend:
-
   replicaCount: 8
 
   strategy:
@@ -17,8 +15,9 @@ appBackend:
 
   images:
     appBackend:
-      repository: docker.io/teamdigitale/italia-backend
-      tag: v2.5.2
+      # repository: docker.io/teamdigitale/italia-backend
+      repository: docker.io/pagopa/app-backend
+      tag: v4.2.0
       pullPolicy: IfNotPresent
 
   env:
@@ -35,9 +34,11 @@ appBackend:
     redis_url: "io-dev-redis-cache-01.redis.cache.windows.net"
     redis_port: "6380"
     saml_callback_url: "https://app-backend.dev.io.italia.it/assertionConsumerService"
+    saml_logout_callback_url: "https://app-backend.dev.io.italia.it/slo"
     saml_issuer: "https://app-backend.dev.io.italia.it"
     saml_attribute_consuming_service_index: "0"
     spid_testenv_url: "https://spid-testenv.dev.io.italia.it"
+    spid_validator_url: "https://validator.spid.gov.it"
     token_duration_in_seconds: "2592000" # 30 days
     idp_metadata_url: "https://registry.spid.gov.it/metadata/idp/spid-entities-idps.xml"
     idp_metadata_refresh_interval_seconds: "864000" # 10 days
@@ -89,7 +90,8 @@ appBackend:
 
   azureKeyvaultName: io-dev-keyvault
 
-  resources: {}
+  resources:
+    {}
     # To set limits remove the curly brackets
     # after the resources tag and
     # uncomment the lines below.
