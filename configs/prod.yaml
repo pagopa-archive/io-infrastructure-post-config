@@ -54,8 +54,7 @@ spidTestenv:
 
       metadata:
         remote:
-          - url: "https://api.pa-onboarding.io.italia.it/metadata"
-          - url: "https://app-backend.io.italia.it/metadata"
+          - "https://app-backend.io.italia.it/metadata"
 
       # Web server configuration
 
@@ -72,6 +71,9 @@ spidTestenv:
       endpoints:
         single_sign_on_service: "/sso"
         single_logout_service: "/slo"
+
+      # Disable new users
+      can_add_user: false
 
 # SPIND-TESTENV - end
 
