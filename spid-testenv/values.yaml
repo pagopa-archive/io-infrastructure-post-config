@@ -18,7 +18,7 @@ spidTestenv:
   images:
     spidTestenv:
       repository: italia/spid-testenv2
-      tag: fix-c14n-issue-169
+      tag: latest
       pullPolicy: IfNotPresent
 
   initCmd:
@@ -95,8 +95,7 @@ spidTestenv:
 
       metadata:
         remote:
-          - url: "https://api.pa-onboarding.dev.io.italia.it/metadata"
-          - url: "https://app-backend.dev.io.italia.it/metadata"
+          - "https://app-backend.dev.io.italia.it/metadata"
 
       # Web server configuration
 
