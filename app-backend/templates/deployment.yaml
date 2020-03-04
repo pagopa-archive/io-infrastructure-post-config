@@ -77,6 +77,8 @@ spec:
               value: "{{ .Values.appBackend.env.spid_validator_url }}"
             - name: "TOKEN_DURATION_IN_SECONDS"
               value: "{{ .Values.appBackend.env.token_duration_in_seconds }}"
+            - name: "CIE_METADATA_URL"
+              value: "{{ .Values.appBackend.env.cie_metadata_url }}"
             - name: "IDP_METADATA_URL"
               value: "{{ .Values.appBackend.env.idp_metadata_url }}"
             - name: "IDP_METADATA_REFRESH_INTERVAL_SECONDS"

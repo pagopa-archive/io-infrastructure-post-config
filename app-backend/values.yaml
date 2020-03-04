@@ -41,6 +41,8 @@ appBackend:
     spid_validator_url: "https://validator.spid.gov.it"
     token_duration_in_seconds: "2592000" # 30 days
     idp_metadata_url: "https://registry.spid.gov.it/metadata/idp/spid-entities-idps.xml"
+    # CIE IDP URL development environment
+    cie_metadata_url: "https://idserver.servizicie.interno.gov.it:8443/idp/shibboleth"
     idp_metadata_refresh_interval_seconds: "864000" # 10 days
 
   secrets:
