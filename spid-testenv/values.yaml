@@ -115,6 +115,9 @@ spidTestenv:
 
       # Disable new users
       can_add_user: false
+      
+      # Enable ProxyFix
+      behind_reverse_proxy: true
 
     idpCrt: |
       -----BEGIN CERTIFICATE-----
